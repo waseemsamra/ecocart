@@ -19,11 +19,11 @@ function BrandCard({ brand }: { brand: Brand }) {
     <Link href={`/brands/${brandSlug}`} className="block hover:shadow-lg transition-shadow rounded-lg">
       <Card className="h-full">
         <CardHeader>
-          <CardTitle>{brand.name}</CardTitle>
+          <CardTitle className="text-sm">{brand.name}</CardTitle>
         </CardHeader>
         {brand.description && (
             <CardContent>
-                <p className="text-muted-foreground line-clamp-3">{brand.description}</p>
+                <p className="text-muted-foreground line-clamp-3 text-xs">{brand.description}</p>
             </CardContent>
         )}
       </Card>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Logo } from "./logo";
@@ -72,7 +73,8 @@ export function SiteFooter() {
                       <div>
                         <h4 className="font-headline font-semibold mb-4">Shop</h4>
                         <ul className="space-y-2">
-                          <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">All products</Link></li>
+                          <li><Link href="/products" className="text-sm text-muted-foreground hover:text-primary">All products</Link></li>
+                          <li><Link href="/brands" className="text-sm text-muted-foreground hover:text-primary">Brands</Link></li>
                           <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Samples</Link></li>
                         </ul>
                       </div>

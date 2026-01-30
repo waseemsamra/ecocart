@@ -48,6 +48,7 @@ export function SearchDialog() {
   const isLoading = authLoading || isLoadingProducts || isLoadingBrands;
 
   const [defaultProducts, setDefaultProducts] = useState<Product[]>([]);
+  const [defaultBrands, setDefaultBrands] = useState<Brand[]>([]);
 
   useEffect(() => {
     if (allProducts && allProducts.length > 0) {
@@ -55,6 +56,13 @@ export function SearchDialog() {
       setDefaultProducts(shuffled.slice(0, 20));
     }
   }, [allProducts]);
+  
+  useEffect(() => {
+    if (allBrands && allBrands.length > 0) {
+      const shuffled = [...allBrands].sort(() => 0.5 - Math.random());
+      setDefaultBrands(shuffled.slice(0, 6));
+    }
+  }, [allBrands]);
 
   const filteredProducts = useMemo(() => {
     if (!searchTerm) {
@@ -69,13 +77,16 @@ export function SearchDialog() {
   }, [searchTerm, allProducts, defaultProducts]);
 
   const filteredBrands = useMemo(() => {
-    if (!searchTerm || !allBrands) {
+    if (!searchTerm) {
+      return defaultBrands;
+    }
+    if (!allBrands) {
       return [];
     }
     return allBrands.filter((brand) =>
       brand.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, allBrands]);
+  }, [searchTerm, allBrands, defaultBrands]);
 
 
   useEffect(() => {
@@ -155,9 +166,11 @@ export function SearchDialog() {
                 </div>
               ) : totalResults > 0 || !searchTerm ? (
                  <div className="space-y-12">
-                    {searchTerm && filteredBrands.length > 0 && (
+                    {filteredBrands.length > 0 && (
                         <div>
-                            <h3 className="font-headline text-2xl font-bold mb-6 text-center">Brands & Designers</h3>
+                            <h3 className="font-headline text-2xl font-bold mb-6 text-center">
+                                {searchTerm ? 'Brands & Designers' : 'Popular Brands'}
+                            </h3>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 justify-center">
                                 {filteredBrands.map(brand => (
                                     <Link key={brand.id} href={`/brands/${brand.slug || slugify(brand.name)}`} onClick={(e) => handleBrandClick(e, brand)} className="group block text-center p-4 rounded-lg hover:bg-muted">

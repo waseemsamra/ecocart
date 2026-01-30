@@ -1,0 +1,364 @@
+{
+  "placeholderImages": [
+    {
+      "id": "product-1",
+      "description": "A stylish reusable water bottle",
+      "imageUrl": "https://images.unsplash.com/photo-1616118132534-381148898bb4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3YXRlciUyMGJvdHRsZXxlbnwwfHx8fDE3NjgzNTg3MzF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "water bottle"
+    },
+    {
+      "id": "product-2",
+      "description": "A set of bamboo toothbrushes",
+      "imageUrl": "https://images.unsplash.com/photo-1553691158-91a7f9183156?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxiYW1ib28lMjB0b290aGJydXNofGVufDB8fHx8MTc2ODQzMjI1MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bamboo toothbrush"
+    },
+    {
+      "id": "product-3",
+      "description": "A canvas tote bag with a leaf design",
+      "imageUrl": "https://images.unsplash.com/photo-1578237493287-8d4d2b03591a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx0b3RlJTIwYmFnfGVufDB8fHx8MTc2ODQzMjI1MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tote bag"
+    },
+    {
+      "id": "product-4",
+      "description": "A set of stainless steel straws",
+      "imageUrl": "https://images.unsplash.com/photo-1615723093586-1ad38d59056b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzdGVlbCUyMHN0cmF3c3xlbnwwfHx8fDE3Njg0MzIyNTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "steel straws"
+    },
+    {
+      "id": "product-5",
+      "description": "A solar-powered phone charger",
+      "imageUrl": "https://images.unsplash.com/photo-1692052480358-235419613e4d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzb2xhciUyMGNoYXJnZXJ8ZW58MHx8fHwxNzY4MzcyODM4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "solar charger"
+    },
+    {
+      "id": "product-6",
+      "description": "A set of beeswax food wraps",
+      "imageUrl": "https://images.unsplash.com/photo-1628254744918-986e2fbfbdf0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxiZWVzd2F4JTIwd3JhcHN8ZW58MHx8fHwxNzY4NDMyMjUwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "beeswax wraps"
+    },
+    {
+      "id": "product-7",
+      "description": "A compost bin for kitchen scraps",
+      "imageUrl": "https://images.unsplash.com/photo-1621496654772-c66c48290259?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjb21wb3N0JTIwYmlufGVufDB8fHx8MTc2ODQzMjI1MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "compost bin"
+    },
+    {
+      "id": "product-8",
+      "description": "A set of wool dryer balls",
+      "imageUrl": "https://images.unsplash.com/photo-1626372037370-41bc64f8c2bf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8ZHJ5ZXIlMjBiYWxsc3xlbnwwfHx8fDE3Njg0MzIyNTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dryer balls"
+    },
+    {
+      "id": "hero-coffee-bags",
+      "description": "A collection of branded coffee bags",
+      "imageUrl": "https://images.unsplash.com/photo-1594589278946-0b5c1f3a5a7a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb2ZmZWUlMjBiYWdzfGVufDB8fHx8MTc2ODc1NjUwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "coffee bags"
+    },
+    {
+      "id": "hero-coffee-cups",
+      "description": "A person holding different types of coffee cups",
+      "imageUrl": "https://images.unsplash.com/photo-1579781403233-10d24f1e319b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb2ZmZWUlMjBjdXBzfGVufDB8fHx8MTc2ODc1NjUwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "coffee cups"
+    },
+    {
+      "id": "must-have-1",
+      "description": "A pink bag of Grateful Dead Morning Brew coffee.",
+      "imageUrl": "https://images.unsplash.com/photo-1651761483492-7d2e26dd3455?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjb2ZmZWUlMjBiYWd8ZW58MHx8fHwxNzY4MzM1NzUwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "coffee bag"
+    },
+    {
+      "id": "must-have-2",
+      "description": "Blue and teal custom poly mailers with a logo.",
+      "imageUrl": "https://images.unsplash.com/photo-1701518035740-a33935aeb3ec?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwb2x5JTIwbWFpbGVyc3xlbnwwfHx8fDE3Njg0Mzc2Mjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "poly mailers"
+    },
+    {
+      "id": "must-have-3",
+      "description": "A hand holding a custom recyclable coffee cup.",
+      "imageUrl": "https://images.unsplash.com/photo-1598908314732-07113901949e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjb2ZmZWUlMjBjdXB8ZW58MHx8fHwxNzY4NDI1MzU4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "coffee cup"
+    },
+    {
+      "id": "must-have-4",
+      "description": "Hands holding custom multi-colored tissue paper with a checkered pattern.",
+      "imageUrl": "https://images.unsplash.com/photo-1663729219757-c619e3aeb72f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx0aXNzdWUlMjBwYXBlcnxlbnwwfHx8fDE3Njg0Mjk4Mzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tissue paper"
+    },
+    {
+      "id": "must-have-5",
+      "description": "A roll of custom branded stickers.",
+      "imageUrl": "https://images.unsplash.com/photo-1572950947476-26a6e4111e80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzdGlja2Vyc3xlbnwwfHx8fDE3Njg0Mzc2MjZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "stickers"
+    },
+    {
+      "id": "must-have-6",
+      "description": "Custom food-grade paper with a logo.",
+      "imageUrl": "https://images.unsplash.com/photo-1560162071-da4c4a91077a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxmb29kJTIwcGFwZXJ8ZW58MHx8fHwxNzY4NDM4MTg0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "food paper"
+    },
+    {
+      "id": "must-have-7",
+      "description": "A roll of custom printed tape.",
+      "imageUrl": "https://images.unsplash.com/photo-1764567386744-090d5ff67d66?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjdXN0b20lMjB0YXBlfGVufDB8fHx8MTc2ODQzODE4NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "custom tape"
+    },
+    {
+      "id": "must-have-8",
+      "description": "A custom food box.",
+      "imageUrl": "https://images.unsplash.com/photo-1652862729869-2f4e80c1849d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmb29kJTIwYm94fGVufDB8fHx8MTc2ODM0NzMyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "food box"
+    },
+    {
+      "id": "must-have-9",
+      "description": "A custom retail box.",
+      "imageUrl": "https://images.unsplash.com/photo-1683252162057-07215f03d1ad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxyZXRhaWwlMjBib3h8ZW58MHx8fHwxNzY4NDM4MTg0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "retail box"
+    },
+    {
+      "id": "must-have-10",
+      "description": "A custom shipping box.",
+      "imageUrl": "https://images.unsplash.com/photo-1577702312706-e23ff063064f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzaGlwcGluZyUyMGJveHxlbnwwfHx8fDE3Njg0MzgxODR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "shipping box"
+    },
+    {
+      "id": "trending-tapes",
+      "description": "A roll of decorative tape on a yellow background",
+      "imageUrl": "https://images.unsplash.com/photo-1631117541217-703649c0634a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjdXN0b20lMjB0YXBlfGVufDB8fHx8MTc2OTQ1MDY3NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "custom tape"
+    },
+    {
+      "id": "trending-coffee-bags",
+      "description": "Blue coffee bags with white text",
+      "imageUrl": "https://images.unsplash.com/photo-1643185390431-7b04879683d3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwYWNrYWdpbmclMjBjb2ZmZWV8ZW58MHx8fHwxNzY5NDUwNzA0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "coffee packaging"
+    },
+    {
+      "id": "trending-product-boxes",
+      "description": "Unfolded white product boxes on a wooden surface",
+      "imageUrl": "https://images.unsplash.com/photo-1618063614809-7f4c6e3d2f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx1bmZvbGRlZCUyMGJveHxlbnwwfHx8fDE3Njk0NTA3MzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "unfolded box"
+    },
+    {
+      "id": "trending-totes",
+      "description": "A white tote bag with a green logo",
+      "imageUrl": "https://images.unsplash.com/photo-1562546106-b9cb3a52f725?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx0b3RlJTIwYmFnfGVufDB8fHx8MTc2OTQ1MDc2MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tote bag"
+    },
+    {
+      "id": "brand-story-1",
+      "description": "Custom printed tape on a box next to a brown t-shirt",
+      "imageUrl": "https://images.unsplash.com/photo-1651862590541-81f09c536efc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjdXN0b20lMjB0YXBlJTIwcGFja2FnaW5nfGVufDB8fHx8MTc2ODQ4ODQ2MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "custom tape packaging"
+    },
+    {
+      "id": "brand-story-2",
+      "description": "Hands holding coffee cups with 'The Understudy' branding",
+      "imageUrl": "https://images.unsplash.com/photo-1634400394679-af4bc565d13f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxicmFuZGVkJTIwY29mZmVlJTIwY3Vwc3xlbnwwfHx8fDE3Njg0ODg0NjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "branded coffee cups"
+    },
+    {
+      "id": "brand-story-3",
+      "description": "The storefront of 'The Lunch Lady' restaurant",
+      "imageUrl": "https://images.unsplash.com/photo-1755604708691-cd9b930a56b9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxyZXN0YXVyYW50JTIwc3RvcmVmcm9udHxlbnwwfHx8fDE3Njg0ODg0NjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "restaurant storefront"
+    },
+    {
+      "id": "brand-story-4",
+      "description": "A hand holding an iced coffee from 'The Hillmont'",
+      "imageUrl": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxpY2VkJTIwY29mZmVlfGVufDB8fHx8MTc2ODQ2MDA4M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "iced coffee"
+    },
+    {
+      "id": "brand-story-5",
+      "description": "Coffee and sandwiches on plates with 'Foremost' branding",
+      "imageUrl": "https://images.unsplash.com/photo-1727178392429-b87c025839a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjb2ZmZWUlMjBzYW5kd2ljaGVzfGVufDB8fHx8MTc2ODQ4ODQ2MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "coffee sandwiches"
+    },
+    {
+      "id": "brand-story-6",
+      "description": "An open refrigerator with 'Fresh Harvest' branding",
+      "imageUrl": "https://images.unsplash.com/photo-1613083042976-463bdde9ec51?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxyZWZyaWdlcmF0b3IlMjBncm9jZXJpZXN8ZW58MHx8fHwxNzY4NDg4NDYxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "refrigerator groceries"
+    },
+    {
+      "id": "alliance-background",
+      "description": "A kraft paper envelope with a HanaPac packaging alliance sticker on it",
+      "imageUrl": "https://images.unsplash.com/photo-1663729219757-c619e3aeb72f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx0aXNzdWUlMjBwYXBlcnxlbnwwfHx8fDE3Njg0Mjk4Mzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "packaging alliance"
+    },
+    {
+      "id": "hero-takeout-bag",
+      "description": "A branded paper bag for takeout on a red diner booth",
+      "imageUrl": "https://printinweb.s3.us-east-1.amazonaws.com/images/patsys-bag.png",
+      "imageHint": "takeout bag"
+    },
+    {
+      "id": "hero-paper-bowls",
+      "description": "A stack of branded red paper bowls being held",
+      "imageUrl": "https://printinweb.s3.us-east-1.amazonaws.com/images/patsys-bowls.png",
+      "imageHint": "paper bowls"
+    },
+    {
+      "id": "hero-food-packaging",
+      "description": "Various types of food packaging like boxes and containers",
+      "imageUrl": "https://images.unsplash.com/photo-1627992258833-255d61483040?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmb29kJTIwcGFja2FnaW5nfGVufDB8fHx8MTc3MDA2NTM0Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "food packaging"
+    },
+    {
+      "id": "paper-cup-regular",
+      "description": "A regular paper cup",
+      "imageUrl": "https://images.unsplash.com/photo-1648587456176-4969b0124b12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGFwZXIlMjBjdXB8ZW58MHx8fHwxNzY4ODUzMzUzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "paper cup"
+    },
+    {
+      "id": "paper-cup-premium",
+      "description": "A premium paper cup",
+      "imageUrl": "https://images.unsplash.com/photo-1648587456176-4969b0124b12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGFwZXIlMjBjdXB8ZW58MHx8fHwxNzY4ODUzMzUzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "paper cup"
+    },
+    {
+      "id": "paper-ice-cream-cup",
+      "description": "A paper ice cream cup",
+      "imageUrl": "https://images.unsplash.com/photo-1534706936160-d5ee67737249?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxpY2UlMjBjcmVhbSUyMGN1cHxlbnwwfHx8fDE3Njg5NDk4NzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ice cream cup"
+    },
+    {
+      "id": "paper-soup-bowl",
+      "description": "A paper soup bowl",
+      "imageUrl": "https://images.unsplash.com/photo-1613844237701-8f3664fc2eff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxzb3VwJTIwYm93bHxlbnwwfHx8fDE3Njg4Mzk5ODd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "soup bowl"
+    },
+    {
+      "id": "paper-salad-bowl",
+      "description": "A paper salad bowl",
+      "imageUrl": "https://images.unsplash.com/photo-1600335895229-6e75511892c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzYWxhZCUyMGJvd2x8ZW58MHx8fHwxNzY4OTEzNzE2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "salad bowl"
+    },
+    {
+      "id": "paper-food-box",
+      "description": "A paper food box",
+      "imageUrl": "https://images.unsplash.com/photo-1609710219624-201223bd6b1e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxmb29kJTIwYm94fGVufDB8fHx8MTc2ODkyMzI0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "food box"
+    },
+    {
+      "id": "paper-lunch-box",
+      "description": "A paper lunch box",
+      "imageUrl": "https://images.unsplash.com/photo-1726726192151-6d4139ff229d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bHVuY2glMjBib3h8ZW58MHx8fHwxNzY4OTQ5ODc0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lunch box"
+    },
+    {
+      "id": "paper-pizza-box",
+      "description": "A paper pizza box",
+      "imageUrl": "https://images.unsplash.com/photo-1630466913899-31fb06c6110e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwaXp6YSUyMGJveHxlbnwwfHx8fDE3Njg5NDk4NzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pizza box"
+    },
+    {
+      "id": "paper-noodle-box",
+      "description": "A paper noodle box",
+      "imageUrl": "https://images.unsplash.com/photo-1723561796007-2fcf547ec47d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxub29kbGUlMjBib3h8ZW58MHx8fHwxNzY4OTQ5ODc0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "noodle box"
+    },
+    {
+      "id": "paper-boat-tray",
+      "description": "A paper boat tray",
+      "imageUrl": "https://images.unsplash.com/photo-1681658194609-1f52272dc79e1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxib2F0JTIwdHJheXxlbnwwfHx8fDE3Njg5NDk4NzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "boat tray"
+    },
+    {
+      "id": "paper-round-plate",
+      "description": "A paper round plate",
+      "imageUrl": "https://images.unsplash.com/photo-1671572576802-3264725a715a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxwYXBlciUyMHBsYXRlfGVufDB8fHx8MTc2ODk0OTg3NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "paper plate"
+    },
+    {
+      "id": "aluminium-platter",
+      "description": "An aluminium food platter",
+      "imageUrl": "https://images.unsplash.com/photo-1573247373996-cea1f3e6adf6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxhbHVtaW5pdW0lMjBwbGF0dGVyfGVufDB8fHx8MTc2ODk0OTg3NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "aluminium platter"
+    },
+    {
+      "id": "aluminium-container",
+      "description": "An aluminium food container",
+      "imageUrl": "https://images.unsplash.com/photo-1696324535687-6bb987f50e96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhbHVtaW5pdW0lMjBjb250YWluZXJ8ZW58MHx8fHwxNzY4OTQ5ODc1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "aluminium container"
+    },
+    {
+      "id": "plastic-round-container",
+      "description": "A round plastic food container",
+      "imageUrl": "https://images.unsplash.com/photo-1607515456374-ac1874945417?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwbGFzdGljJTIwZm9vJTIwY29udGFpbmVyfGVufDB8fHx8MTc3MDA2NTg5MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "plastic container"
+    },
+    {
+      "id": "plastic-rectangular-container",
+      "description": "A rectangular plastic food container",
+      "imageUrl": "https://images.unsplash.com/photo-1589184523094-358b548d249d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtZWFsJTIwcHJlcCUyMGNvbnRhaW5lcnxlbnwwfHx8fDE3NzAwNjU5MjR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "meal prep container"
+    },
+    {
+      "id": "plastic-compartment-container",
+      "description": "A plastic food container with compartments",
+      "imageUrl": "https://images.unsplash.com/photo-1581142284939-9b6999c15d7e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxiZW50byUyMGJveHxlbnwwfHx8fDE3NzAwNjU5NDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bento box"
+    },
+    {
+      "id": "wedding-arpita-mehta",
+      "description": "Model in Arpita Mehta red wedding lehenga",
+      "imageUrl": "https://images.unsplash.com/photo-1631846563423-4e3b1dd83d3b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8aW5kaWFuJTIwd2VkZGluZyUyMGRyZXNzfGVufDB8fDB8fHww",
+      "imageHint": "wedding lehenga"
+    },
+    {
+      "id": "wedding-osaa-by-adarsh",
+      "description": "Model in Osaa by Adarsh pink wedding lehenga",
+      "imageUrl": "https://images.unsplash.com/photo-1617957223253-53d393b457e8?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW5kaWFuJTIwYnJpZGV8ZW58MHx8MHx8fDA%3D",
+      "imageHint": "wedding lehenga"
+    },
+    {
+      "id": "wedding-sawan-gandhi",
+      "description": "Model in Sawan Gandhi silver wedding lehenga",
+      "imageUrl": "https://images.unsplash.com/photo-1610998334458-bf8d6a5441c0?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8aW5kaWFuJTIwbGVoZW5nYXxlbnwwfHx8fHww",
+      "imageHint": "wedding lehenga"
+    },
+    {
+      "id": "designers-spotlight-bg",
+      "description": "Three models wearing elegant designer outfits",
+      "imageUrl": "https://images.unsplash.com/photo-1581404917893-de3f13c631a3?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fGZhc2hpb24lMjBtb2RlbHN8ZW58MHx8MHx8fDA%3D",
+      "imageHint": "fashion models"
+    },
+    {
+      "id": "modern-must-have-1",
+      "description": "Green lehenga by Jayesh & Kajal Shah",
+      "imageUrl": "https://images.unsplash.com/photo-1627192233633-c8a773e51a6d?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Z3JlZW4lMjBsZWhlbmdhfGVufDB8fDB8fHww",
+      "imageHint": "green lehenga"
+    },
+    {
+      "id": "modern-must-have-2",
+      "description": "Red dress by Meenagurnam",
+      "imageUrl": "https://images.unsplash.com/photo-1572804013427-4d714e2831b2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8cmVkJTIwZHJlc3N8ZW58MHx8MHx8fDA%3D",
+      "imageHint": "red dress"
+    },
+    {
+      "id": "modern-must-have-3",
+      "description": "Glittery dress by Dolly J",
+      "imageUrl": "https://images.unsplash.com/photo-1620756254472-78c6b7e73543?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Z2xpdHRlcnklMjBkcmVzc3xlbnwwfHx8fHww",
+      "imageHint": "glittery dress"
+    },
+    {
+      "id": "modern-must-have-4",
+      "description": "Elegant saree by Mahima Mahajan",
+      "imageUrl": "https://images.unsplash.com/photo-1617195921893-61a7d6d75a89?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2FyZWV8ZW58MHx8MHx8fDA%3D",
+      "imageHint": "saree"
+    },
+    {
+      "id": "modern-must-have-5",
+      "description": "Floral lehenga by Krishna Padia",
+      "imageUrl": "https://images.unsplash.com/photo-1635762514334-118d7c449195?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZmxvcmFsJTIwbGVoZW5nYXxlbnwwfHx8fHww",
+      "imageHint": "floral lehenga"
+    },
+    {
+      "id": "modern-must-have-6",
+      "description": "Gold outfit by Mustard Moon",
+      "imageUrl": "https://images.unsplash.com/photo-1631846563423-4e3b1dd83d3b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8aW5kaWFuJTIwd2VkZGluZyUyMGRyZXNzfGVufDB8fDB8fHww",
+      "imageHint": "indian outfit"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -22,15 +23,14 @@ import {
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 
-
-export default function ProductDetailPage() {
+function ProductDetailContent() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { addToCart } = useCart();
-  const db = useFirestore();
+  const db = useFirestore()!;
 
   const productRef = useMemo(() => {
-    if (!db || !params.id) return null;
+    if (!params.id) return null;
     const ref = doc(db, 'products', params.id);
     (ref as any).__memo = true;
     return ref;
@@ -43,9 +43,11 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     if (product && product.images && product.images.length > 0) {
-      setSelectedImage(product.images[0]);
+      if (!selectedImage) {
+        setSelectedImage(product.images[0]);
+      }
     }
-  }, [product]);
+  }, [product, selectedImage]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && product) {
@@ -68,7 +70,7 @@ export default function ProductDetailPage() {
   }, [product]);
 
   const brandQuery = useMemo(() => {
-    if (!db || !product?.brandIds || product.brandIds.length === 0) return null;
+    if (!product?.brandIds || product.brandIds.length === 0) return null;
     const q = query(collection(db, 'brands'), where(documentId(), 'in', product.brandIds));
     (q as any).__memo = true;
     return q;
@@ -77,8 +79,7 @@ export default function ProductDetailPage() {
   const brand = useMemo(() => brands?.[0], [brands]);
 
   const sizesQuery = useMemo(() => {
-    if (!db) return null;
-    const q = query(collection(db, 'sizes')); // Fetch all sizes
+    const q = query(collection(db, 'sizes')); 
     (q as any).__memo = true;
     return q;
   }, [db]);
@@ -89,7 +90,6 @@ export default function ProductDetailPage() {
     if (dbSizes && dbSizes.length > 0) {
       return dbSizes;
     }
-    // Fallback data if the collection is empty
     return [
       { id: 'xs', name: 'Extra Small', shortName: 'XS' },
       { id: 's', name: 'Small', shortName: 'S' },
@@ -110,12 +110,14 @@ export default function ProductDetailPage() {
     }
   }, [availableSizes, selectedSize]);
 
-  const isLoading = isLoadingProduct || isLoadingSizes || !db;
-
-  if (isLoading) {
+  if (isLoadingProduct || isLoadingSizes) {
     return (
-      <div className="container py-12 flex justify-center items-center min-h-[80vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="py-8 px-4 md:px-0">
+        <div className="container mx-auto">
+          <div className="flex justify-center items-center min-h-[80vh]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -138,53 +140,52 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="py-8">
-      <div className="text-sm text-muted-foreground mb-4 px-8">
-        <Link href="/" className="hover:underline">Home</Link>
-        {' > '}
-        <span>{product.name}</span>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 px-8">
-        {/* Left image gallery */}
-        <div className="md:col-span-5 grid grid-cols-12 gap-4">
-          <div className="col-span-2">
-            <div className="flex flex-col gap-3">
-              {product.images?.map((image) => (
-                <button
-                  key={image.id}
-                  className={`aspect-square relative border-2 rounded-md overflow-hidden ${selectedImage?.id === image.id ? 'border-primary' : 'border-transparent'}`}
-                  onClick={() => setSelectedImage(image)}
-                >
+    <div className="py-8 px-4 md:px-0">
+      <div className="container mx-auto">
+        <div className="text-sm text-muted-foreground mb-4">
+          <Link href="/" className="hover:underline">Home</Link>
+          {' > '}
+          <span>{product.name}</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+          <div className="md:col-span-8 grid grid-cols-12 gap-4">
+            <div className="col-span-2">
+              <div className="flex flex-col gap-3">
+                {product.images?.map((image) => (
+                  <button
+                    key={image.id}
+                    className={`aspect-square relative border-2 rounded-md overflow-hidden ${selectedImage?.id === image.id ? 'border-primary' : 'border-transparent'}`}
+                    onClick={() => setSelectedImage(image)}
+                  >
+                    <Image
+                      src={image.imageUrl || 'https://placehold.co/100x100'}
+                      alt={image.description || product.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 10vw, 5vw"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="col-span-10">
+              <div className="aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
+                {selectedImage ? (
                   <Image
-                    src={image.imageUrl || 'https://placehold.co/100x100'}
-                    alt={image.description || product.name}
+                    src={selectedImage.imageUrl || 'https://placehold.co/600x800'}
+                    alt={selectedImage.description || product.name}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 10vw, 5vw"
+                    sizes="(max-width: 768px) 80vw, 50vw"
+                    priority
                   />
-                </button>
-              ))}
+                ) : <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>}
+              </div>
             </div>
           </div>
-          <div className="col-span-10">
-            <div className="aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
-              {selectedImage ? (
-                <Image
-                  src={selectedImage.imageUrl || 'https://placehold.co/600x800'}
-                  alt={selectedImage.description || product.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 80vw, 42vw"
-                  priority
-                />
-              ) : <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>}
-            </div>
-          </div>
-        </div>
 
-        {/* Right sticky column */}
-        <div className="md:col-span-7">
-           <div className="md:sticky md:top-24">
+          <div className="md:col-span-4">
+            <div className="md:sticky md:top-24">
               <div className="space-y-4">
                 <div className="flex justify-between items-start">
                     <div>
@@ -219,7 +220,7 @@ export default function ProductDetailPage() {
                   <div className="pt-4">
                     <div className="flex justify-between items-center mb-2">
                         <h3 className="text-sm font-semibold">Select your size</h3>
-                        <Button variant="link" className="p-0 h-auto text-sm text-red-500 hover:underline">Size Guide</Button>
+                        <Button variant="link" className="hidden md:inline-flex p-0 h-auto text-sm text-red-500 hover:underline">Size Guide</Button>
                     </div>
                     <div className="flex flex-wrap gap-2 items-center">
                       {availableSizes.map((size) => (
@@ -263,8 +264,27 @@ export default function ProductDetailPage() {
                 
               </div>
             </div>
+          </div>
         </div>
       </div>
     </div>
   );
+}
+
+export default function ProductDetailPage() {
+  const db = useFirestore();
+
+  if (!db) {
+    return (
+        <div className="py-8 px-4 md:px-0">
+            <div className="container mx-auto">
+                <div className="flex justify-center items-center min-h-[80vh]">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+            </div>
+        </div>
+    );
+  }
+
+  return <ProductDetailContent />;
 }

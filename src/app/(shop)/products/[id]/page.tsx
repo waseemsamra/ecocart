@@ -138,13 +138,13 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="text-sm text-muted-foreground mb-4">
+    <div className="py-8">
+      <div className="text-sm text-muted-foreground mb-4 px-8">
         <Link href="/" className="hover:underline">Home</Link>
         {' > '}
         <span>{product.name}</span>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 px-8">
         {/* Left image gallery */}
         <div className="md:col-span-7 grid grid-cols-12 gap-4">
           <div className="col-span-2">

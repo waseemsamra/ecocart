@@ -20,6 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from '@/lib/utils';
+import { Card, CardContent } from '@/components/ui/card';
 
 
 export default function ProductDetailPage() {
@@ -81,7 +82,27 @@ export default function ProductDetailPage() {
     (q as any).__memo = true;
     return q;
   }, [db]);
-  const { data: availableSizes } = useCollection<Size>(sizesQuery);
+  
+  const { data: dbSizes, isLoading: isLoadingSizes } = useCollection<Size>(sizesQuery);
+
+  const availableSizes = useMemo(() => {
+    if (dbSizes && dbSizes.length > 0) {
+      return dbSizes;
+    }
+    // Fallback data if the collection is empty
+    return [
+      { id: 'xs', name: 'Extra Small', shortName: 'XS' },
+      { id: 's', name: 'Small', shortName: 'S' },
+      { id: 'm', name: 'Medium', shortName: 'M' },
+      { id: 'l', name: 'Large', shortName: 'L' },
+      { id: 'xl', name: 'Extra Large', shortName: 'XL' },
+      { id: 'xxl', name: '2XL', shortName: '2XL' },
+      { id: '3xl', name: '3XL', shortName: '3XL' },
+      { id: '4xl', name: '4XL', shortName: '4XL' },
+      { id: '5xl', name: '5XL', shortName: '5XL' },
+      { id: '6xl', name: '6XL', shortName: '6XL' },
+    ];
+  }, [dbSizes]);
 
   useEffect(() => {
     if (availableSizes && availableSizes.length > 0 && !selectedSize) {
@@ -89,7 +110,7 @@ export default function ProductDetailPage() {
     }
   }, [availableSizes, selectedSize]);
 
-  const isLoading = isLoadingProduct || !db;
+  const isLoading = isLoadingProduct || isLoadingSizes || !db;
 
   if (isLoading) {
     return (

@@ -15,6 +15,7 @@ import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
@@ -87,7 +88,7 @@ export default function ProductDetailPage() {
 
   const isLoading = authLoading || isLoadingProduct || !db;
 
-  if (isLoading || !params.id) {
+  if (isLoading) {
     return (
       <div className="container py-12 flex justify-center items-center min-h-[80vh]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

@@ -3,7 +3,7 @@
 import { useParams, notFound } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 import type { Product, Size } from '@/lib/types';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import { Loader2, Check, ShieldCheck, Truck, Info, Star } from 'lucide-react';
 import Image from 'next/image';
@@ -56,12 +56,10 @@ export default function ProductDetailPage() {
   const [error, setError] = useState<Error | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
 
-  const productId = params.id;
+  const productIdOrSlug = params.id;
 
   useEffect(() => {
-    if (!db || !productId) {
-      // If db or id is not available, do nothing and wait.
-      // isLoading is true by default.
+    if (!db || !productIdOrSlug) {
       return;
     }
 
@@ -69,13 +67,21 @@ export default function ProductDetailPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const productRef = doc(db, 'products', productId);
-        const productSnap = await getDoc(productRef);
+        // Try fetching by ID first, as it's the primary identifier
+        let productSnap = await getDoc(doc(db, 'products', productIdOrSlug));
 
-        if (productSnap.exists()) {
+        // If not found by ID, try querying by slug as a fallback
+        if (!productSnap.exists()) {
+          const q = query(collection(db, 'products'), where('slug', '==', productIdOrSlug), limit(1));
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+            productSnap = querySnapshot.docs[0];
+          }
+        }
+        
+        if (productSnap && productSnap.exists()) {
           setProduct({ id: productSnap.id, ...productSnap.data() } as Product);
         } else {
-          // This will lead to the notFound() call below
           setProduct(null);
         }
       } catch (e: any) {
@@ -87,7 +93,7 @@ export default function ProductDetailPage() {
     };
 
     fetchProduct();
-  }, [db, productId]);
+  }, [db, productIdOrSlug]);
 
   const images = useMemo(() => product?.images || [], [product]);
 
@@ -115,10 +121,10 @@ export default function ProductDetailPage() {
 
   return (
     <div className="container mx-auto py-8 md:py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
         
         {/* Image Gallery */}
-        <div className="flex flex-col-reverse md:flex-row gap-4">
+        <div className="lg:col-span-3 flex flex-col-reverse md:flex-row gap-4">
             <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto pr-2 pb-2 md:pb-0">
                 {images.map((image, index) => (
                     <button key={image.id} onClick={() => setSelectedImage(index)} className={`shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}>
@@ -141,7 +147,7 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Product Details */}
-        <div>
+        <div className="lg:col-span-2">
             <h1 className="text-3xl md:text-4xl font-headline font-bold">{product.name}</h1>
             <div className="flex items-center gap-4 mt-2">
                 <p className="text-2xl font-semibold">DH{product.price.toFixed(2)}</p>
@@ -180,7 +186,7 @@ export default function ProductDetailPage() {
                     <Label className="text-base font-semibold">Size</Label>
                     <Sheet>
                         <SheetTrigger asChild>
-                            <Button variant="link" className="text-sm p-0 h-auto hidden md:inline-flex">
+                            <Button variant="link" className="text-sm p-0 h-auto">
                                 <Info className="mr-1 h-4 w-4"/>
                                 Size Guide
                             </Button>
@@ -208,23 +214,6 @@ export default function ProductDetailPage() {
                         <span className="text-xs font-bold text-center">CUSTOM TAILORED</span>
                     </Label>
                 </RadioGroup>
-                <div className="mt-2 text-center md:hidden">
-                     <Sheet>
-                        <SheetTrigger asChild>
-                            <Button variant="link" className="text-sm p-0 h-auto">
-                                Size Guide
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent>
-                            <SheetHeader>
-                                <SheetTitle>Size Guide</SheetTitle>
-                            </SheetHeader>
-                            <div className="py-4">
-                                <SizeGuide />
-                            </div>
-                        </SheetContent>
-                    </Sheet>
-                </div>
             </div>
 
             <div className="mt-8">

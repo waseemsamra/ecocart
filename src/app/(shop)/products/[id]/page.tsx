@@ -9,7 +9,7 @@ import { useDoc } from '@/firebase/firestore/use-doc';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useFirestore } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';
-import { Loader2, Heart, Truck, Info } from 'lucide-react';
+import { Loader2, Heart, Truck, Info, Zap } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
@@ -19,6 +19,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { cn } from '@/lib/utils';
+
 
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
@@ -74,11 +76,11 @@ export default function ProductDetailPage() {
   const brand = useMemo(() => brands?.[0], [brands]);
 
   const sizesQuery = useMemo(() => {
-    if (!db || !product?.sizeIds || product.sizeIds.length === 0) return null;
-    const q = query(collection(db, 'sizes'), where(documentId(), 'in', product.sizeIds));
+    if (!db) return null;
+    const q = query(collection(db, 'sizes')); // Fetch all sizes
     (q as any).__memo = true;
     return q;
-  }, [product, db]);
+  }, [db]);
   const { data: availableSizes } = useCollection<Size>(sizesQuery);
 
   useEffect(() => {
@@ -198,13 +200,32 @@ export default function ProductDetailPage() {
                         <h3 className="text-sm font-semibold">Select your size</h3>
                         <Button variant="link" className="p-0 h-auto text-sm text-red-500 hover:underline">Size Guide</Button>
                     </div>
-                    <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
+                    <div className="flex flex-wrap gap-2 items-center">
                       {availableSizes.map((size) => (
-                        <Button key={size.id} variant={selectedSize === size.id ? 'default' : 'outline'} onClick={() => setSelectedSize(size.id)}>
+                        <Button
+                          key={size.id}
+                          variant="outline"
+                          onClick={() => setSelectedSize(size.id)}
+                          className={cn(
+                            "relative flex flex-col h-[60px] w-[60px] justify-center items-center p-1",
+                            selectedSize === size.id ? "border-red-500 text-red-500" : ""
+                          )}
+                        >
+                          {size.shortName === '6XL' && <span className="absolute -top-2 right-0 px-1 py-0.5 bg-black text-white text-[10px] font-semibold rounded">5 left</span>}
+
+                          <span className="font-medium flex items-center">
                             {size.shortName}
+                            {size.shortName === '6XL' && <Zap className="h-4 w-4 ml-1" />}
+                          </span>
+                          <span className="text-xs text-red-500 mt-1">25%</span>
                         </Button>
                       ))}
-                      <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white focus:bg-red-500 focus:text-white">CUSTOM TAILORED</Button>
+                      <Button
+                        variant="outline"
+                        className="h-[60px] w-auto px-4 border-red-500 text-red-500 hover:bg-red-500 hover:text-white focus:bg-red-500 focus:text-white"
+                      >
+                        CUSTOM TAILORED
+                      </Button>
                     </div>
                   </div>
                 )}

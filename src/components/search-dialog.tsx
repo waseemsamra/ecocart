@@ -99,8 +99,7 @@ export function SearchDialog() {
 
   const handleProductClick = (e: React.MouseEvent, product: Product) => {
     e.preventDefault();
-    const productSlug = product.slug || slugify(product.name);
-    router.push(`/products/${productSlug}`);
+    router.push(`/products/${product.id}`);
     
     setTimeout(() => {
       setOpen(false);

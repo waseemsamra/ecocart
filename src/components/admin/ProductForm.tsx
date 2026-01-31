@@ -34,7 +34,6 @@ const imageSchema = z.object({
 
 const productSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
-  slug: z.string().optional(),
   description: z.string().min(1, 'Description is required'),
   price: z.coerce.number().min(0, 'Price must be a positive number'),
   originalPrice: z.coerce.number().optional(),
@@ -87,7 +86,6 @@ export function ProductForm({ product }: { product?: Product }) {
     defaultValues: product
       ? {
           ...product,
-          slug: product.slug || slugify(product.name),
           price: product.price || 0,
           originalPrice: product.originalPrice || undefined,
           images: product.images?.map(img => ({
@@ -101,7 +99,6 @@ export function ProductForm({ product }: { product?: Product }) {
         }
       : {
           name: '',
-          slug: '',
           description: '',
           price: 0,
           originalPrice: undefined,
@@ -124,15 +121,6 @@ export function ProductForm({ product }: { product?: Product }) {
           packagingPartnerTags: [],
         },
   });
-
-  useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === 'name') {
-        form.setValue('slug', slugify(value.name || ''), { shouldValidate: true });
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
   
   const { fields: imagesField, append: appendImage, remove: removeImage } = useFieldArray({
     control: form.control,
@@ -292,9 +280,9 @@ export function ProductForm({ product }: { product?: Product }) {
 
         const validImages = finalImages.filter(img => img.imageUrl && img.imageUrl.trim() !== '');
 
-        const dataToSave = {
+        const dataToSave: Omit<Product, 'id'> = {
             ...data,
-            slug: data.slug || slugify(data.name),
+            slug: slugify(data.name),
             images: validImages,
             updatedAt: serverTimestamp(),
         };
@@ -337,14 +325,6 @@ export function ProductForm({ product }: { product?: Product }) {
                     <CardContent className="space-y-4">
                         <FormField control={form.control} name="name" render={({ field }) => (
                             <FormItem><FormLabel>Product Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <FormField control={form.control} name="slug" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Slug</FormLabel>
-                                <FormControl><Input {...field} readOnly className="bg-muted" /></FormControl>
-                                <FormDescription>This is the URL-friendly version of the name and is generated automatically.</FormDescription>
-                                <FormMessage />
-                            </FormItem>
                         )} />
                         <FormField control={form.control} name="description" render={({ field }) => (
                             <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} rows={5} /></FormControl><FormMessage /></FormItem>

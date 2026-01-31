@@ -1,11 +1,10 @@
-
 'use client';
 
 import Image from 'next/image';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 import type { Product, Size, Brand } from '@/lib/types';
-import { doc, collection, query, where, limit } from 'firebase/firestore';
+import { doc, collection, query, where } from 'firebase/firestore';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useFirestore } from '@/firebase/provider';
@@ -20,26 +19,22 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { cn, slugify } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 function ProductDetailContent() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { addToCart } = useCart();
-  const db = useFirestore()!;
+  const db = useFirestore();
 
-  const productSlug = params.id;
+  const productId = params.id;
 
-  const productsQuery = useMemo(() => {
-      if (!db || !productSlug) return null;
-      const q = query(collection(db, 'products'), where('slug', '==', productSlug), limit(1));
-      (q as any).__memo = true;
-      return q;
-  }, [productSlug, db]);
-
-  const { data: products, isLoading: isLoadingProduct, error } = useCollection<Product>(productsQuery);
-  const product = useMemo(() => products?.[0], [products]);
+  const productRef = useMemo(() => {
+    if (!db || !productId) return null;
+    return doc(db, 'products', productId);
+  }, [productId, db]);
+  
+  const { data: product, isLoading: isLoadingProduct } = useDoc<Product>(productRef);
 
   const [selectedImage, setSelectedImage] = useState(product?.images?.[0]);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -73,8 +68,8 @@ function ProductDetailContent() {
   }, [product]);
 
   const brandQuery = useMemo(() => {
-    if (!product?.brandIds || product.brandIds.length === 0) return null;
-    const q = query(collection(db, 'brands'), where(documentId(), 'in', product.brandIds));
+    if (!db || !product?.brandIds || product.brandIds.length === 0) return null;
+    const q = query(collection(db, 'brands'), where('__name__', 'in', product.brandIds));
     (q as any).__memo = true;
     return q;
   }, [product, db]);
@@ -82,6 +77,7 @@ function ProductDetailContent() {
   const brand = useMemo(() => brands?.[0], [brands]);
 
   const sizesQuery = useMemo(() => {
+    if (!db) return null;
     const q = query(collection(db, 'sizes')); 
     (q as any).__memo = true;
     return q;
@@ -93,6 +89,7 @@ function ProductDetailContent() {
     if (dbSizes && dbSizes.length > 0) {
       return dbSizes;
     }
+    // Fallback default sizes
     return [
       { id: 'xs', name: 'Extra Small', shortName: 'XS' },
       { id: 's', name: 'Small', shortName: 'S' },
@@ -150,8 +147,8 @@ function ProductDetailContent() {
           {' > '}
           <span>{product.name}</span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-          <div className="md:col-span-8 grid grid-cols-12 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-12 gap-4">
             <div className="col-span-2">
               <div className="flex flex-col gap-3">
                 {product.images?.map((image) => (
@@ -187,85 +184,83 @@ function ProductDetailContent() {
             </div>
           </div>
 
-          <div className="md:col-span-4">
-            <div className="md:sticky md:top-24">
-              <div className="space-y-4">
-                <div className="flex justify-between items-start">
-                    <div>
-                        {brand && <h1 className="text-4xl font-bold tracking-tight uppercase">{brand.name}</h1>}
-                        <p className="text-lg text-muted-foreground">{product.name}</p>
-                    </div>
-                    <Button variant="ghost" size="icon" className="shrink-0">
-                        <Heart className="h-6 w-6" />
-                    </Button>
-                </div>
-                
-                 <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold">DH{product.price.toFixed(2)}</span>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-6 w-6">
-                                    <Info className="h-4 w-4 text-muted-foreground" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Price is inclusive of all taxes.</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
-                <p className="text-xs text-muted-foreground">Incl. of taxes, excl. custom duties</p>
-
-                <Separator className="my-6" />
-                
-                {availableSizes && availableSizes.length > 0 && (
-                  <div className="pt-4">
-                    <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-sm font-semibold">Select your size</h3>
-                        <Button variant="link" className="hidden md:inline-flex p-0 h-auto text-sm text-red-500 hover:underline">Size Guide</Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2 items-center">
-                      {availableSizes.map((size) => (
-                        <Button
-                          key={size.id}
-                          variant="outline"
-                          onClick={() => setSelectedSize(size.id)}
-                          className={cn(
-                            "relative flex flex-col h-[60px] w-[60px] justify-center items-center p-1",
-                            selectedSize === size.id ? "border-red-500 text-red-500" : ""
-                          )}
-                        >
-                          {size.shortName === '6XL' && <span className="absolute -top-2 right-0 px-1 py-0.5 bg-black text-white text-[10px] font-semibold rounded">5 left</span>}
-
-                          <span className="font-medium flex items-center">
-                            {size.shortName}
-                            {size.shortName === '6XL' && <Zap className="h-4 w-4 ml-1" />}
-                          </span>
-                          <span className="text-xs text-red-500 mt-1">25%</span>
-                        </Button>
-                      ))}
-                      <Button
-                        variant="outline"
-                        className="h-[60px] w-auto px-4 border-red-500 text-red-500 hover:bg-red-500 hover:text-white focus:bg-red-500 focus:text-white"
-                      >
-                        CUSTOM TAILORED
-                      </Button>
-                    </div>
+          <div className="md:sticky md:top-24">
+            <div className="space-y-4">
+              <div className="flex justify-between items-start">
+                  <div>
+                      {brand && <h1 className="text-4xl font-bold tracking-tight uppercase">{brand.name}</h1>}
+                      <p className="text-lg text-muted-foreground">{product.name}</p>
                   </div>
-                )}
-                
-                <div className="flex items-start gap-2 text-sm text-muted-foreground mt-4">
-                    <Truck className="h-4 w-4 mt-0.5 shrink-0" />
-                    <p>Standard Shipping: The estimated shipping date for this product is by 21st of February. Please note that this is the shipping date and not the delivery date.</p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3 pt-4">
-                    <Button size="lg" className="bg-black text-white hover:bg-black/80" onClick={handleBuyNow}>Buy Now</Button>
-                    <Button size="lg" variant="outline" onClick={handleAddToCart}>Add to Cart</Button>
-                </div>
-                
+                  <Button variant="ghost" size="icon" className="shrink-0">
+                      <Heart className="h-6 w-6" />
+                  </Button>
               </div>
+              
+               <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold">DH{product.price.toFixed(2)}</span>
+                  <TooltipProvider>
+                      <Tooltip>
+                          <TooltipTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-6 w-6">
+                                  <Info className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                              <p>Price is inclusive of all taxes.</p>
+                          </TooltipContent>
+                      </Tooltip>
+                  </TooltipProvider>
+              </div>
+              <p className="text-xs text-muted-foreground">Incl. of taxes, excl. custom duties</p>
+
+              <Separator className="my-6" />
+              
+              {availableSizes && availableSizes.length > 0 && (
+                <div className="pt-4">
+                  <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-sm font-semibold">Select your size</h3>
+                      <Button variant="link" className="hidden md:inline-flex p-0 h-auto text-sm text-red-500 hover:underline">Size Guide</Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    {availableSizes.map((size) => (
+                      <Button
+                        key={size.id}
+                        variant="outline"
+                        onClick={() => setSelectedSize(size.id)}
+                        className={cn(
+                          "relative flex flex-col h-[60px] w-[60px] justify-center items-center p-1",
+                          selectedSize === size.id ? "border-red-500 text-red-500" : ""
+                        )}
+                      >
+                        {size.shortName === '6XL' && <span className="absolute -top-2 right-0 px-1 py-0.5 bg-black text-white text-[10px] font-semibold rounded">5 left</span>}
+
+                        <span className="font-medium flex items-center">
+                          {size.shortName}
+                          {size.shortName === '6XL' && <Zap className="h-4 w-4 ml-1" />}
+                        </span>
+                        <span className="text-xs text-red-500 mt-1">25%</span>
+                      </Button>
+                    ))}
+                    <Button
+                      variant="outline"
+                      className="h-[60px] w-auto px-4 border-red-500 text-red-500 hover:bg-red-500 hover:text-white focus:bg-red-500 focus:text-white"
+                    >
+                      CUSTOM TAILORED
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex items-start gap-2 text-sm text-muted-foreground mt-4">
+                  <Truck className="h-4 w-4 mt-0.5 shrink-0" />
+                  <p>Standard Shipping: The estimated shipping date for this product is by 21st of February. Please note that this is the shipping date and not the delivery date.</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3 pt-4">
+                  <Button size="lg" className="bg-black text-white hover:bg-black/80" onClick={handleBuyNow}>Buy Now</Button>
+                  <Button size="lg" variant="outline" onClick={handleAddToCart}>Add to Cart</Button>
+              </div>
+              
             </div>
           </div>
         </div>
@@ -274,20 +269,4 @@ function ProductDetailContent() {
   );
 }
 
-export default function ProductDetailPage() {
-  const db = useFirestore();
-
-  if (!db) {
-    return (
-        <div className="py-8 px-4 md:px-0">
-            <div className="container mx-auto">
-                <div className="flex justify-center items-center min-h-[80vh]">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-            </div>
-        </div>
-    );
-  }
-
-  return <ProductDetailContent />;
-}
+export default ProductDetailContent;

@@ -24,6 +24,7 @@ function ProductsPageContent() {
   
   const showInWeddingTales = searchParams.get('showInWeddingTales') === 'true';
   const showInDesignersOnDiscount = searchParams.get('showInDesignersOnDiscount') === 'true';
+  const packagingPartnerTag = searchParams.get('tag');
 
   const initialFilters = useMemo(() => {
     const categoryId = searchParams.get('category');
@@ -56,9 +57,13 @@ function ProductsPageContent() {
         q = query(q, where('showInDesignersOnDiscount', '==', true));
     }
 
+    if (packagingPartnerTag) {
+        q = query(q, where('packagingPartnerTags', 'array-contains', packagingPartnerTag));
+    }
+
     (q as any).__memo = true;
     return q;
-  }, [filters, db, showInWeddingTales, showInDesignersOnDiscount]);
+  }, [filters, db, showInWeddingTales, showInDesignersOnDiscount, packagingPartnerTag]);
 
   const { data: products, isLoading: isLoadingData, error } = useCollection<Product>(productsQuery);
   const isLoading = authLoading || isLoadingData;
@@ -66,14 +71,16 @@ function ProductsPageContent() {
   const pageTitle = useMemo(() => {
     if (showInWeddingTales) return "Wedding Tales Collection";
     if (showInDesignersOnDiscount) return "Designers on Discount";
+    if (packagingPartnerTag === 'ready-to-ship') return "Ready to Ship Stunners";
     return "Find Your Perfect Packaging";
-  }, [showInWeddingTales, showInDesignersOnDiscount]);
+  }, [showInWeddingTales, showInDesignersOnDiscount, packagingPartnerTag]);
 
   const pageDescription = useMemo(() => {
     if (showInWeddingTales) return "A curated collection of our most romantic and elegant products, perfect for any wedding.";
     if (showInDesignersOnDiscount) return "Discover exclusive deals from top designers, available for a limited time.";
+    if (packagingPartnerTag === 'ready-to-ship') return "These items are in stock and ready to ship out immediately.";
     return "Use our advanced filters to discover products tailored to your brand's needs. Select materials, sizes, colors, and more.";
-  }, [showInWeddingTales, showInDesignersOnDiscount]);
+  }, [showInWeddingTales, showInDesignersOnDiscount, packagingPartnerTag]);
 
   const filtersComponent = (
      <ProductFilters onFiltersChange={setFilters} initialFilters={initialFilters} />

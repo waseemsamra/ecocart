@@ -35,6 +35,7 @@ const productSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
   description: z.string().min(1, 'Description is required'),
   price: z.coerce.number().min(0, 'Price must be a positive number'),
+  originalPrice: z.coerce.number().optional(),
   sustainabilityImpact: z.string().optional(),
   materials: z.array(z.string()).optional(),
   certifications: z.array(z.string()).optional(),
@@ -85,6 +86,7 @@ export function ProductForm({ product }: { product?: Product }) {
       ? {
           ...product,
           price: product.price || 0,
+          originalPrice: product.originalPrice || undefined,
           images: product.images?.map(img => ({
               ...img,
               imageUrl: img.imageUrl?.startsWith(s3BaseUrl) ? img.imageUrl.replace(s3BaseUrl, '') : (img.imageUrl || '')
@@ -98,6 +100,7 @@ export function ProductForm({ product }: { product?: Product }) {
           name: '',
           description: '',
           price: 0,
+          originalPrice: undefined,
           images: [],
           categoryIds: [],
           sizeIds: [],
@@ -324,9 +327,14 @@ export function ProductForm({ product }: { product?: Product }) {
                         <FormField control={form.control} name="description" render={({ field }) => (
                             <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} rows={5} /></FormControl><FormMessage /></FormItem>
                         )} />
-                        <FormField control={form.control} name="price" render={({ field }) => (
-                            <FormItem><FormLabel>Price</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="price" render={({ field }) => (
+                                <FormItem><FormLabel>Price</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="originalPrice" render={({ field }) => (
+                                <FormItem><FormLabel>Original Price (for sales)</FormLabel><FormControl><Input type="number" step="0.01" placeholder="e.g., 120.00" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -480,6 +488,60 @@ export function ProductForm({ product }: { product?: Product }) {
                                             onCheckedChange={field.onChange}
                                         />
                                     </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="packagingPartnerTags"
+                            render={() => (
+                                <FormItem className="rounded-lg border p-4">
+                                    <div className="mb-4">
+                                        <FormLabel className="text-base">"Packaging Partner" Tags</FormLabel>
+                                        <FormDescription>
+                                            Select which tabs this product should appear in on the homepage.
+                                        </FormDescription>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {[
+                                            { id: 'new-in', label: 'New In' },
+                                            { id: 'most-popular', label: 'Most Popular' },
+                                            { id: 'ready-to-ship', label: 'Ready to Ship' },
+                                        ].map((item) => (
+                                            <FormField
+                                                key={item.id}
+                                                control={form.control}
+                                                name="packagingPartnerTags"
+                                                render={({ field }) => {
+                                                    return (
+                                                        <FormItem
+                                                            key={item.id}
+                                                            className="flex flex-row items-start space-x-3 space-y-0"
+                                                        >
+                                                            <FormControl>
+                                                                <Checkbox
+                                                                    checked={field.value?.includes(item.id)}
+                                                                    onCheckedChange={(checked) => {
+                                                                        return checked
+                                                                            ? field.onChange([...(field.value || []), item.id])
+                                                                            : field.onChange(
+                                                                                field.value?.filter(
+                                                                                    (value) => value !== item.id
+                                                                                )
+                                                                            )
+                                                                    }}
+                                                                />
+                                                            </FormControl>
+                                                            <FormLabel className="font-normal">
+                                                                {item.label}
+                                                            </FormLabel>
+                                                        </FormItem>
+                                                    )
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />

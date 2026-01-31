@@ -100,6 +100,18 @@ const BestSellingDesigners = dynamic(
   }
 );
 
+const ReadyToShipArticles = dynamic(
+  () => import('@/components/ready-to-ship').then((mod) => mod.ReadyToShipArticles),
+  { 
+    ssr: false,
+    loading: () => (
+      <section className="py-12 md:py-20">
+        <div className="container"><Skeleton className="h-96 w-full" /></div>
+      </section>
+    ),
+  }
+);
+
 const BrandStories = dynamic(
   () => import('@/components/brand-stories').then((mod) => mod.BrandStories),
   { 
@@ -195,6 +207,8 @@ export default function HomePage() {
       <DesignersSpotlight />
 
       <BestSellingDesigners />
+
+      <ReadyToShipArticles />
 
       <BrandStories />
 

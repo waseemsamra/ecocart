@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 import type { Product, Size, Brand } from '@/lib/types';
-import { doc, collection, query, where, documentId } from 'firebase/firestore';
+import { doc, collection, query, where, limit } from 'firebase/firestore';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useFirestore } from '@/firebase/provider';
@@ -20,7 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { cn } from '@/lib/utils';
+import { cn, slugify } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 
 function ProductDetailContent() {
@@ -29,14 +29,17 @@ function ProductDetailContent() {
   const { addToCart } = useCart();
   const db = useFirestore()!;
 
-  const productRef = useMemo(() => {
-    if (!params.id) return null;
-    const ref = doc(db, 'products', params.id);
-    (ref as any).__memo = true;
-    return ref;
-  }, [params.id, db]);
+  const productSlug = params.id;
 
-  const { data: product, isLoading: isLoadingProduct, error } = useDoc<Product>(productRef);
+  const productsQuery = useMemo(() => {
+      if (!db || !productSlug) return null;
+      const q = query(collection(db, 'products'), where('slug', '==', productSlug), limit(1));
+      (q as any).__memo = true;
+      return q;
+  }, [productSlug, db]);
+
+  const { data: products, isLoading: isLoadingProduct, error } = useCollection<Product>(productsQuery);
+  const product = useMemo(() => products?.[0], [products]);
 
   const [selectedImage, setSelectedImage] = useState(product?.images?.[0]);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);

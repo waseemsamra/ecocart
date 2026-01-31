@@ -20,9 +20,10 @@ function ModernMustHaveCard({ product, brandsMap }: { product: Product; brandsMa
   const imageUrl = product.images?.[0]?.imageUrl || 'https://placehold.co/600x800';
   const imageHint = product.images?.[0]?.imageHint || '';
   const imageAlt = product.images?.[0]?.description || product.name;
+  const productSlug = product.slug || slugify(product.name);
 
   return (
-    <Link href={`/products/${product.id}`} className="block group">
+    <Link href={`/products/${productSlug}`} className="block group">
       <div className="relative group block overflow-hidden aspect-[3/4]">
         <Image
           src={imageUrl}

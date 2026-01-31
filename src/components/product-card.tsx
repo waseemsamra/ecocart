@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Product } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, slugify } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
 
 interface ProductCardProps {
@@ -14,11 +14,12 @@ interface ProductCardProps {
 
 export function ProductCard({ product, layout = 'grid', onClick }: ProductCardProps) {
   const image = product.images?.[0];
+  const productSlug = product.slug || slugify(product.name);
   
   if (layout === 'list') {
       return (
         <Card className="flex flex-col md:flex-row overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl">
-             <Link href={`/products/${product.id}`} className="block md:w-1/3" onClick={onClick}>
+             <Link href={`/products/${productSlug}`} className="block md:w-1/3" onClick={onClick}>
                 <div className="aspect-square relative h-full">
                     {image ? (
                         <Image
@@ -38,14 +39,14 @@ export function ProductCard({ product, layout = 'grid', onClick }: ProductCardPr
             <div className="p-6 flex flex-col justify-between flex-1">
                 <div>
                     <CardTitle className="font-headline text-xl mb-2 hover:text-primary transition-colors">
-                        <Link href={`/products/${product.id}`} onClick={onClick}>{product.name}</Link>
+                        <Link href={`/products/${productSlug}`} onClick={onClick}>{product.name}</Link>
                     </CardTitle>
                     <p className="text-sm text-muted-foreground line-clamp-3">{product.description}</p>
                 </div>
                  <div className="flex justify-between items-end mt-4">
                     <p className="text-xl font-semibold">DH{product.price.toFixed(2)}</p>
                     <Button asChild variant="outline" size="sm">
-                        <Link href={`/products/${product.id}`} onClick={onClick}>View Details <ArrowRight className="ml-2 h-4 w-4"/></Link>
+                        <Link href={`/products/${productSlug}`} onClick={onClick}>View Details <ArrowRight className="ml-2 h-4 w-4"/></Link>
                     </Button>
                 </div>
             </div>
@@ -55,7 +56,7 @@ export function ProductCard({ product, layout = 'grid', onClick }: ProductCardPr
 
   // Grid layout
   return (
-    <Link href={`/products/${product.id}`} className="group block" onClick={onClick}>
+    <Link href={`/products/${productSlug}`} className="group block" onClick={onClick}>
       <div className="relative overflow-hidden aspect-square rounded-xl bg-muted">
         {image ? (
             <Image

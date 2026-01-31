@@ -3,6 +3,7 @@ import type { ImagePlaceholder } from './placeholder-images';
 export interface Product {
   id: string;
   name: string;
+  slug?: string;
   price: number;
   originalPrice?: number;
   description: string;

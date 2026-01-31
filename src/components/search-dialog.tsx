@@ -97,9 +97,10 @@ export function SearchDialog() {
     }
   }, [open]);
 
-  const handleProductClick = (e: React.MouseEvent, productId: string) => {
+  const handleProductClick = (e: React.MouseEvent, product: Product) => {
     e.preventDefault();
-    router.push(`/products/${productId}`);
+    const productSlug = product.slug || slugify(product.name);
+    router.push(`/products/${productSlug}`);
     
     setTimeout(() => {
       setOpen(false);
@@ -188,7 +189,7 @@ export function SearchDialog() {
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                                 {filteredProducts.map(product => (
-                                    <ProductCard key={product.id} product={product} onClick={(e) => handleProductClick(e, product.id)} />
+                                    <ProductCard key={product.id} product={product} onClick={(e) => handleProductClick(e, product)} />
                                 ))}
                             </div>
                         </div>

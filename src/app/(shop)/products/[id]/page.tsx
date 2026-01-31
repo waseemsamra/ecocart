@@ -172,8 +172,15 @@ export default function ProductDetailPage() {
         <div className="md:col-span-5">
            <div className="md:sticky md:top-24">
               <div className="space-y-4">
-                {brand && <p className="font-semibold text-lg uppercase">{brand.name}</p>}
-                <h1 className="font-headline text-2xl font-bold">{product.name}</h1>
+                <div className="flex justify-between items-start">
+                    <div>
+                        {brand && <h1 className="font-headline text-3xl md:text-4xl font-bold uppercase">{brand.name}</h1>}
+                        <p className="text-lg text-muted-foreground">{product.name}</p>
+                    </div>
+                    <Button variant="ghost" size="icon" className="shrink-0">
+                        <Heart className="h-6 w-6" />
+                    </Button>
+                </div>
                 
                 <div className="flex items-baseline gap-3">
                     <span className="text-2xl font-bold">DH{product.price.toFixed(2)}</span>
@@ -183,9 +190,6 @@ export default function ProductDetailPage() {
                     {discountPercent > 0 && (
                         <span className="text-lg font-semibold text-destructive">{discountPercent}% OFF</span>
                     )}
-                     <Button variant="ghost" size="icon" className="ml-auto">
-                        <Heart className="h-6 w-6" />
-                    </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">Incl. of taxes, excl. custom duties</p>
 

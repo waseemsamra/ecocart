@@ -138,6 +138,20 @@ const HandpickedForYou = dynamic(
   }
 );
 
+const CelebrityCloset = dynamic(
+  () => import('@/components/celebrity-closet').then((mod) => mod.CelebrityCloset),
+  {
+    ssr: false,
+    loading: () => (
+      <section className="py-12 md:py-20">
+        <div className="container">
+          <Skeleton className="h-96 w-full" />
+        </div>
+      </section>
+    ),
+  }
+);
+
 
 const TrendingNowCard = ({ item }: { item: TrendingItem }) => {
   return (
@@ -225,6 +239,8 @@ export default function HomePage() {
       <ReadyToShipArticles />
 
       <HandpickedForYou />
+
+      <CelebrityCloset />
 
       <BrandStories />
 

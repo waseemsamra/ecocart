@@ -33,9 +33,10 @@ export function useDoc<T = any>(
 
   useEffect(() => {
     if (!memoizedDocRef) {
-      setData(null);
-      setIsLoading(false);
-      setError(null);
+      // Keep loading until the ref is available.
+      // This prevents a race condition where the hook returns
+      // `{ data: null, isLoading: false }` before Firestore is initialized.
+      setIsLoading(true);
       return;
     }
 

@@ -1,38 +1,28 @@
 'use client';
 
 import Image from 'next/image';
-import { useParams, notFound } from 'next/navigation';
+import { useParams, notFound, useRouter } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
-import type { Product, Size, Colour } from '@/lib/types';
+import type { Product, Size, Brand } from '@/lib/types';
 import { doc, collection, query, where, documentId } from 'firebase/firestore';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useFirestore } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel';
-import { Loader2, Truck, Zap, Leaf, HelpCircle } from 'lucide-react';
+import { Loader2, Heart, Copy, MessageSquare, Phone, Scissors, Camera, Truck, Wand2, Info } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
-import { QuantityPricingTable } from '@/components/quantity-pricing-table';
-import { ProductInfoAccordion } from '@/components/product-info-accordion';
-import { RelatedProducts } from '@/components/related-products';
-import { BrandStories } from '@/components/brand-stories';
 import { useAuth } from '@/context/auth-context';
-
-type PricingTier = { qty: number; pricePerUnit: number; save: number; total: number; };
-const defaultTier = { qty: 1000, pricePerUnit: 0.130, save: 0, total: 130.00 };
-
+import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
+import Link from 'next/link';
 
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const { addToCart } = useCart();
   const db = useFirestore();
   const { loading: authLoading } = useAuth();
+  const { toast } = useToast();
 
   const productRef = useMemo(() => {
     if (!db || !params.id) return null;
@@ -43,8 +33,16 @@ export default function ProductDetailPage() {
 
   const { data: product, isLoading: isLoadingProduct, error } = useDoc<Product>(productRef);
 
+  const [selectedImage, setSelectedImage] = useState(product?.images?.[0]);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+
   useEffect(() => {
-    // Only run on the client and when a product is successfully loaded.
+    if (product && product.images && product.images.length > 0) {
+      setSelectedImage(product.images[0]);
+    }
+  }, [product]);
+
+  useEffect(() => {
     if (typeof window !== 'undefined' && product) {
         const RECENTLY_VIEWED_KEY = 'recentlyViewed';
         const MAX_RECENTLY_VIEWED = 10;
@@ -64,6 +62,15 @@ export default function ProductDetailPage() {
     }
   }, [product]);
 
+  const brandQuery = useMemo(() => {
+    if (!db || !product?.brandIds || product.brandIds.length === 0) return null;
+    const q = query(collection(db, 'brands'), where(documentId(), 'in', product.brandIds));
+    (q as any).__memo = true;
+    return q;
+  }, [product, db]);
+  const { data: brands } = useCollection<Brand>(brandQuery);
+  const brand = useMemo(() => brands?.[0], [brands]);
+
   const sizesQuery = useMemo(() => {
     if (!db || !product?.sizeIds || product.sizeIds.length === 0) return null;
     const q = query(collection(db, 'sizes'), where(documentId(), 'in', product.sizeIds));
@@ -72,33 +79,17 @@ export default function ProductDetailPage() {
   }, [product, db]);
   const { data: availableSizes } = useCollection<Size>(sizesQuery);
 
-  const coloursQuery = useMemo(() => {
-    if (!db || !product?.colourIds || product.colourIds.length === 0) return null;
-    const q = query(collection(db, 'colours'), where(documentId(), 'in', product.colourIds));
-    (q as any).__memo = true;
-    return q;
-  }, [product, db]);
-  const { data: availableColours } = useCollection<Colour>(coloursQuery);
-
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [selectedLid, setSelectedLid] = useState<string | null>('None');
-  const [selectedTier, setSelectedTier] = useState<PricingTier>(defaultTier);
-  const [selectedColour, setSelectedColour] = useState<string | null>(null);
-
-  const isLoading = authLoading || isLoadingProduct;
-
   useEffect(() => {
     if (availableSizes && availableSizes.length > 0 && !selectedSize) {
       setSelectedSize(availableSizes[0].id);
     }
-    if (availableColours && availableColours.length > 0 && !selectedColour) {
-      setSelectedColour(availableColours[0].id);
-    }
-  }, [availableSizes, selectedSize, availableColours, selectedColour]);
+  }, [availableSizes, selectedSize]);
+
+  const isLoading = authLoading || isLoadingProduct;
 
   if (isLoading || !params.id) {
     return (
-      <div className="container py-12 flex justify-center items-center min-h-[50vh]">
+      <div className="container py-12 flex justify-center items-center min-h-[80vh]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -107,144 +98,175 @@ export default function ProductDetailPage() {
   if (error || !product) {
     return notFound();
   }
+
+  const handleAddToCart = () => {
+    addToCart(product, 1);
+  };
   
-  const handleDesignLater = () => {
-    if (product) {
-        addToCart(product, selectedTier.qty);
-    }
+  const handleBuyNow = () => {
+    addToCart(product, 1);
+    router.push('/checkout');
   };
 
+  const discountPercent = product.originalPrice && product.price
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    : 0;
+
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    toast({
+      title: 'Copied!',
+      description: `Coupon code "${code}" has been copied to your clipboard.`,
+    });
+  }
+
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-12">
-        {/* Left scrolling column */}
-        <div className="md:col-span-7">
-          <div className="bg-muted/30 pt-16">
-            <Carousel className="w-full max-w-2xl mx-auto">
-              <CarouselContent>
-                {product.images && product.images.length > 0 ? (
-                  product.images.map((image) => (
-                    <CarouselItem key={image.id}>
-                      <div className="aspect-square relative">
-                        <Image
-                          src={image.imageUrl || 'https://placehold.co/800x600'}
-                          alt={image.description || product.name}
-                          fill
-                          className="object-cover"
-                          data-ai-hint={image.imageHint}
-                        />
-                      </div>
-                    </CarouselItem>
-                  ))
-                ) : (
-                  <CarouselItem>
-                    <div className="aspect-square relative bg-muted flex items-center justify-center">
-                      <span className="text-muted-foreground">No Image</span>
-                    </div>
-                  </CarouselItem>
-                )}
-              </CarouselContent>
-              <CarouselPrevious className="absolute -left-10 top-1/2 -translate-y-1/2 hidden md:flex" />
-              <CarouselNext className="absolute -right-10 top-1/2 -translate-y-1/2 hidden md:flex" />
-            </Carousel>
+    <div className="container mx-auto py-8">
+      <div className="text-sm text-muted-foreground mb-4">
+        <Link href="/" className="hover:underline">Home</Link>
+        {' > '}
+        <span>{product.name}</span>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+        {/* Left image gallery */}
+        <div className="md:col-span-7 grid grid-cols-12 gap-4">
+          <div className="col-span-2">
+            <div className="flex flex-col gap-3">
+              {product.images?.map((image) => (
+                <button
+                  key={image.id}
+                  className={`aspect-square relative border-2 rounded-md overflow-hidden ${selectedImage?.id === image.id ? 'border-primary' : 'border-transparent'}`}
+                  onClick={() => setSelectedImage(image)}
+                >
+                  <Image
+                    src={image.imageUrl || 'https://placehold.co/100x100'}
+                    alt={image.description || product.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 10vw, 5vw"
+                  />
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="bg-background">
-             <div className="container py-12 md:py-20 space-y-16">
-                <ProductInfoAccordion product={product} />
-                <RelatedProducts />
+          <div className="col-span-10">
+            <div className="aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
+              {selectedImage ? (
+                <Image
+                  src={selectedImage.imageUrl || 'https://placehold.co/600x800'}
+                  alt={selectedImage.description || product.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 80vw, 50vw"
+                  priority
+                />
+              ) : <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>}
             </div>
           </div>
         </div>
 
         {/* Right sticky column */}
         <div className="md:col-span-5">
-           <div className="md:sticky md:top-32 p-8 pt-16 md:py-0 md:px-12 lg:px-16">
-              <div className="w-full max-w-md">
-                <div className="text-sm text-muted-foreground">
-                  <span>Hot Cups</span> — <span>Custom Coffee Cups Compostable</span>
+           <div className="md:sticky md:top-24">
+              <div className="space-y-4">
+                {brand && <p className="font-semibold text-lg uppercase">{brand.name}</p>}
+                <h1 className="font-headline text-2xl font-bold">{product.name}</h1>
+                
+                <div className="flex items-baseline gap-3">
+                    <span className="text-2xl font-bold">DH{product.price.toFixed(2)}</span>
+                    {product.originalPrice && product.originalPrice > product.price && (
+                        <span className="text-lg text-muted-foreground line-through">DH{product.originalPrice.toFixed(2)}</span>
+                    )}
+                    {discountPercent > 0 && (
+                        <span className="text-lg font-semibold text-destructive">{discountPercent}% OFF</span>
+                    )}
+                     <Button variant="ghost" size="icon" className="ml-auto">
+                        <Heart className="h-6 w-6" />
+                    </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">Incl. of taxes, excl. custom duties</p>
 
-                <h1 className="font-headline text-3xl lg:text-4xl font-bold mt-2">{product.name}</h1>
-
-                <p className="text-lg text-muted-foreground mt-2">from DH{product.price.toFixed(3)} / unit</p>
-
-                <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-md text-sm text-primary">
-                  Free standard shipping & proofing available on all orders*
-                </div>
-
-                <div className="mt-6 space-y-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground">Estimated arrival:</h3>
-                  <div className="flex items-center justify-between p-3 border rounded-md bg-gray-50">
-                    <div className="flex items-center gap-3">
-                      <Truck className="h-5 w-5 text-muted-foreground" />
-                      <span className="font-semibold">Standard (Free): Feb 13 - Feb 15</span>
+                {availableSizes && availableSizes.length > 0 && (
+                  <div className="pt-4">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-sm font-semibold">Select your size</h3>
+                        <Button variant="link" className="p-0 h-auto text-sm">Size Guide</Button>
                     </div>
-                    <div className="h-6 w-6 rounded-full bg-green-100 flex items-center justify-center">
-                      <Leaf className="h-4 w-4 text-green-600"/>
+                    <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
+                      {availableSizes.map((size) => (
+                        <Button key={size.id} variant={selectedSize === size.id ? 'default' : 'outline'} onClick={() => setSelectedSize(size.id)}>
+                            {size.shortName}
+                        </Button>
+                      ))}
+                      <Button variant="outline">Custom</Button>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-3 border rounded-md bg-gray-50">
-                    <div className="flex items-center gap-3">
-                      <Zap className="h-5 w-5 text-muted-foreground" />
-                      <span className="font-semibold">Express: Feb 02 - Feb 04</span>
-                    </div>
-                    <div className="h-6 w-6 rounded-full bg-green-100 flex items-center justify-center">
-                      <Leaf className="h-4 w-4 text-green-600"/>
-                    </div>
-                  </div>
+                )}
+                
+                <div className="grid grid-cols-2 gap-3 pt-4">
+                    <Button size="lg" onClick={handleBuyNow}>Buy Now</Button>
+                    <Button size="lg" variant="outline" onClick={handleAddToCart}>Add to Cart</Button>
                 </div>
                 
-                <div className="mt-6 space-y-6">
-                  {availableColours && availableColours.length > 0 && (
+                <Separator />
+                
+                <div className="bg-secondary/50 p-3 rounded-md">
+                    <p className="font-bold text-sm">SHOPMORE175K</p>
+                    <p className="text-xs text-muted-foreground">Shop for DH529 more and get flat DH115 OFF!</p>
+                    <div className="flex items-center justify-between text-xs mt-1">
+                        <span className="text-destructive">T&C Applied</span>
+                        <Button variant="link" className="p-0 h-auto text-xs" onClick={() => copyCode('SHOPMORE175K')}>COPY CODE</Button>
+                    </div>
+                </div>
+
+                <div className="p-3 border rounded-md">
+                    <div className="flex items-center justify-between">
+                        <p className="font-bold text-sm">PRICE MATCH PROMISE</p>
+                        <Button variant="link" className="p-0 h-auto text-xs">KNOW MORE</Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">If you find the product for less we’ll match it!</p>
+                </div>
+                
+                <Separator />
+
+                <div className="space-y-4 text-sm">
+                    {product.description && (
+                        <div>
+                            <h4 className="font-bold uppercase mb-1">Product Description</h4>
+                            <p className="text-muted-foreground">{product.description}</p>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-4">
+                      {product.fit && <div><h4 className="font-bold uppercase">Fit</h4><p className="text-muted-foreground">{product.fit}</p></div>}
+                      {product.composition && <div><h4 className="font-bold uppercase">Composition</h4><p className="text-muted-foreground">{product.composition}</p></div>}
+                      {product.care && <div><h4 className="font-bold uppercase">Care</h4><p className="text-muted-foreground">{product.care}</p></div>}
+                      {product.productCode && <div><h4 className="font-bold uppercase">Product Code</h4><p className="text-muted-foreground">{product.productCode}</p></div>}
+                    </div>
+                    {product.shippingInfo && <div><h4 className="font-bold uppercase mb-1">Shipping Information</h4><p className="text-muted-foreground">{product.shippingInfo}</p></div>}
+                    {product.disclaimer && <div><h4 className="font-bold uppercase mb-1">Disclaimer</h4><p className="text-muted-foreground">{product.disclaimer}</p></div>}
+                </div>
+                
+                <Separator />
+                
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div className="flex items-start gap-2"><Wand2 className="h-4 w-4 mt-0.5 shrink-0" /><div><p className="font-semibold">Customisations</p><p>Same style in a bespoke color</p></div></div>
+                    <div className="flex items-start gap-2"><Scissors className="h-4 w-4 mt-0.5 shrink-0" /><div><p className="font-semibold">Don't want the whole set?</p><p>Buy only one item from the look</p></div></div>
+                    <div className="flex items-start gap-2"><Camera className="h-4 w-4 mt-0.5 shrink-0" /><div><p className="font-semibold">Live Product Preview</p><p>Call us to see the product live</p></div></div>
+                    <div className="flex items-start gap-2"><Truck className="h-4 w-4 mt-0.5 shrink-0" /><div><p className="font-semibold">Early Delivery</p><p>Need the product sooner?</p></div></div>
+                </div>
+
+                <Card className="mt-4">
+                  <CardContent className="p-4 flex items-center justify-between">
                     <div>
-                      <h3 className="text-sm font-semibold mb-2">Colour</h3>
-                      <div className="grid grid-cols-2 gap-2">
-                        {availableColours.map((colour) => (
-                          <Button key={colour.id} variant={selectedColour === colour.id ? 'default' : 'outline'} onClick={() => setSelectedColour(colour.id)}>{colour.name}</Button>
-                        ))}
-                      </div>
+                      <p className="font-semibold">Do you need help with customisation or shipping?</p>
                     </div>
-                  )}
-                  
-                  {availableSizes && availableSizes.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold mb-2 flex items-center gap-1">Size (Capacity) <HelpCircle className="h-4 w-4 text-muted-foreground"/></h3>
-                      <div className="grid grid-cols-2 gap-2">
-                        {availableSizes.map((size) => (
-                          <Button key={size.id} variant={selectedSize === size.id ? 'default' : 'outline'} onClick={() => setSelectedSize(size.id)}>{size.name}</Button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <h3 className="text-sm font-semibold mb-2 flex items-center gap-1">Lid Type <HelpCircle className="h-4 w-4 text-muted-foreground"/></h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button variant={selectedLid === 'None' ? 'default' : 'outline'} onClick={() => setSelectedLid('None')}>None</Button>
-                      <Button variant={selectedLid === 'Sip' ? 'default' : 'outline'} onClick={() => setSelectedLid('Sip')}>Sip (Paper)</Button>
-                    </div>
-                  </div>
-                </div>
-
-                <QuantityPricingTable onQuantityChange={setSelectedTier} />
-
-                <div className="mt-6 text-right">
-                  <p className="text-sm text-muted-foreground">Total (excl. VAT)</p>
-                  <p className="font-headline text-3xl font-bold">DH{selectedTier.total.toFixed(2)}</p>
-                  <p className="text-xs text-muted-foreground">or financing from DH{(selectedTier.total / 4).toFixed(2)}/Mo.</p>
-                </div>
-
-                <div className="mt-6 space-y-3">
-                  <Button size="lg" className="w-full bg-pink-500 hover:bg-pink-600 text-white">Upload design</Button>
-                  <Button size="lg" variant="outline" className="w-full" onClick={handleDesignLater}>
-                    Design later — Add to cart
-                  </Button>
-                </div>
+                    <Button variant="outline"><MessageSquare className="mr-2 h-4 w-4"/> Chat with us</Button>
+                  </CardContent>
+                </Card>
               </div>
             </div>
         </div>
       </div>
-      <BrandStories />
     </>
   );
 }

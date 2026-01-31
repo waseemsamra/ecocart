@@ -29,6 +29,14 @@ export interface Product {
 
   createdAt?: any;
   updatedAt?: any;
+
+  // New fields for product detail page
+  productCode?: string;
+  fit?: string;
+  composition?: string;
+  care?: string;
+  shippingInfo?: string;
+  disclaimer?: string;
 }
 
 export interface CartItem extends Product {

@@ -85,7 +85,7 @@ export default function ProductDetailPage() {
     }
   }, [availableSizes, selectedSize]);
 
-  const isLoading = authLoading || isLoadingProduct;
+  const isLoading = authLoading || isLoadingProduct || !db;
 
   if (isLoading || !params.id) {
     return (

@@ -124,6 +124,20 @@ const BrandStories = dynamic(
   }
 );
 
+const HandpickedForYou = dynamic(
+  () => import('@/components/handpicked-for-you').then((mod) => mod.HandpickedForYou),
+  {
+    ssr: false,
+    loading: () => (
+      <section className="py-12 md:py-20">
+        <div className="container">
+          <Skeleton className="h-96 w-full" />
+        </div>
+      </section>
+    ),
+  }
+);
+
 
 const TrendingNowCard = ({ item }: { item: TrendingItem }) => {
   return (
@@ -209,6 +223,8 @@ export default function HomePage() {
       <BestSellingDesigners />
 
       <ReadyToShipArticles />
+
+      <HandpickedForYou />
 
       <BrandStories />
 

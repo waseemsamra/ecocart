@@ -18,11 +18,11 @@ export function PackagingForBrands() {
           <div className="max-w-md">
             <h2 className="font-headline text-4xl font-bold">
               Packaging for Brands –<br />
-              EcoCart
+              ClothCard
             </h2>
             <p className="mt-4 text-muted-foreground">
               From cakes and bakes, to candles and sandals, whatever your
-              business package onbrand with EcoCart.
+              business package onbrand with ClothCard.
             </p>
             <Button asChild className="mt-6" size="lg" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
               <Link href="/account">Create account</Link>
@@ -44,7 +44,7 @@ export function PackagingForBrands() {
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-3">
-                <AccordionTrigger className="font-semibold">EcoCart Packaging Alliance Certified</AccordionTrigger>
+                <AccordionTrigger className="font-semibold">ClothCard Packaging Alliance Certified</AccordionTrigger>
                 <AccordionContent>
                   Yes. It&apos;s animated by default, but you can disable it if you
                   prefer.

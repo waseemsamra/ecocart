@@ -172,7 +172,7 @@ export function SiteHeader() {
             Custom Paper Bowls - <span className="text-muted-foreground">Serve in style! Now available</span>
           </p>
           <nav className="hidden md:flex items-center gap-6">
-            <Link href="#" className="hover:underline">Tapkit by EcoCart</Link>
+            <Link href="#" className="hover:underline">Tapkit by ClothCard</Link>
             <Link href="#" className="hover:underline">Help Center</Link>
             <Link href="#" className="hover:underline">Contact Us</Link>
           </nav>

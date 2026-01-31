@@ -86,7 +86,7 @@ export function SiteFooter() {
             <h4 className="font-semibold mb-4 uppercase">About Us</h4>
             <ul className="space-y-2">
               <li><Link href="#" className="hover:text-primary">Purple Style Labs</Link></li>
-              <li><Link href="#" className="hover:text-primary">Pernia's Pop Up Show</Link></li>
+              <li><Link href="#" className="hover:text-primary">ClothCard</Link></li>
               <li><Link href="#" className="hover:text-primary">Studio Locator</Link></li>
               <li><Link href="#" className="hover:text-primary">First Look</Link></li>
             </ul>
@@ -120,7 +120,7 @@ export function SiteFooter() {
             <ul className="space-y-2">
               <li className="flex items-center gap-2"><Phone className="h-4 w-4"/> +91 78478 48484</li>
               <li className="flex items-center gap-2"><MessageSquare className="h-4 w-4"/> Whatsapp us on +91 84880 70070</li>
-              <li className="flex items-center gap-2"><Mail className="h-4 w-4"/> customercare@perniaspopupshop.com</li>
+              <li className="flex items-center gap-2"><Mail className="h-4 w-4"/> customercare@clothcard.com</li>
             </ul>
             <h4 className="font-semibold mt-6 mb-4 uppercase">Follow Us</h4>
             <div className="flex items-center gap-3">
@@ -132,7 +132,7 @@ export function SiteFooter() {
             </div>
           </div>
           <div>
-            <h4 className="font-semibold mb-4 uppercase">Get Pernia's Pop-up Shop App</h4>
+            <h4 className="font-semibold mb-4 uppercase">Get ClothCard App</h4>
             <p className="mb-4">We will send you a link on your Email or Phone, open it on your phone and download the App.</p>
             <RadioGroup defaultValue="email" className="flex gap-4 mb-4">
               <div className="flex items-center space-x-2">

@@ -600,7 +600,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Product",
       "type": "object",
-      "description": "Represents a product listed in the EcoCart Marketplace.",
+      "description": "Represents a product listed in the ClothCard Marketplace.",
       "properties": {
         "id": {
           "type": "string",
@@ -895,7 +895,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserAccount",
       "type": "object",
-      "description": "Represents a user account in the EcoCart Marketplace.",
+      "description": "Represents a user account in the ClothCard Marketplace.",
       "properties": {
         "id": {
           "type": "string",
@@ -1384,5 +1384,3 @@
     "reasoning": "The Firestore structure is designed to be secure, scalable, and easily debuggable, following the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters).  \n\nAuthorization Independence is achieved through denormalization.  For example, if access to a cart requires knowing the user's ID, that ID is directly embedded within the cart document or its subcollections (cartItems). This eliminates the need for `get()` calls in security rules, allowing atomic operations (transactions/batches) to work correctly and simplifying debugging. Collaborative data (if any) uses the Membership Map pattern.  \n\nStructural Segregation is applied by separating data with different security requirements into distinct collections.  For example, user accounts are stored separately from products, and each user's shopping cart and orders are stored under their user ID.\n\nAccess Modeling follows consistent patterns:  User-owned data uses path-based ownership (`/users/{userId}/shoppingCarts/{shoppingCartId}`). Global roles are implemented using existence checks on dedicated collections (e.g., `/roles_admin/{uid}`).\n\nData Clarity and Predictability are ensured by using explicit state modeling (if applicable), predictable schemas, and consistent naming conventions.  All collections and documents use semantic names.  Wildcards are descriptive (e.g., `{userId}` instead of `{id}`).\n\nThis structure facilitates simple, robust, and easily debuggable security rules, supporting secure `list` operations and maintaining the integrity of ownership, timestamps, and denormalized data."
   }
 }
-    
-    

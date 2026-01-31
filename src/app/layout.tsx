@@ -6,8 +6,8 @@ import { ClientProviders } from './client-providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'EcoCart Marketplace & Admin',
-  description: 'An e-commerce marketplace for eco-friendly products with an admin dashboard.',
+  title: 'ClothCard Marketplace & Admin',
+  description: 'An e-commerce marketplace for fashion and apparel with an admin dashboard.',
 };
 
 export default function RootLayout({

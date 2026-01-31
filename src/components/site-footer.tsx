@@ -1,17 +1,27 @@
-
 'use client';
 
-import { Logo } from "./logo";
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Instagram, Facebook, Linkedin, Wifi, WifiOff } from 'lucide-react';
+import { 
+  Phone, 
+  MessageSquare, 
+  Mail, 
+  Facebook, 
+  Instagram, 
+  Youtube, 
+  MessageCircle, 
+  Plane,
+  ArrowUp,
+} from 'lucide-react';
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useFirestore } from "@/firebase/provider";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Label } from "./ui/label";
 
-const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
-        <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
-    </svg>
+const XIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" {...props}>
+    <path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8l164.9-199.9L26.8 48h145.6l105.5 141.4L389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z"/>
+  </svg>
 );
 
 const PinterestIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -20,104 +30,172 @@ const PinterestIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-function FirebaseConnectionStatus() {
-  const db = useFirestore();
-  
-  if (db) {
-    return (
-      <div className="flex items-center gap-2 text-xs text-green-600">
-        <Wifi className="h-4 w-4" />
-        <span>DB Connected</span>
-      </div>
-    );
-  }
+const HangerIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M12.5 4.5a2.5 2.5 0 1 0-5 0v1.5"/>
+        <path d="M4 8h16"/>
+        <path d="M6 8l-2.5 7a2 2 0 0 0 2 3h13a2 2 0 0 0 2-3L18 8"/>
+    </svg>
+);
 
-  return (
-    <div className="flex items-center gap-2 text-xs text-red-600">
-      <WifiOff className="h-4 w-4" />
-      <span>DB Disconnected</span>
+const AppStoreButton = () => (
+  <button className="flex items-center justify-center gap-2 bg-black text-white rounded-md px-3 py-2 w-36 h-10">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/></svg>
+    <div className="text-left">
+      <div className="text-xs">Download on the</div>
+      <div className="text-sm font-semibold">App Store</div>
     </div>
-  );
-}
+  </button>
+);
+
+const GooglePlayButton = () => (
+  <button className="flex items-center justify-center gap-2 bg-black text-white rounded-md px-3 py-2 w-36 h-10">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="m22 12-2.12-2.12"/><path d="M2 12h2.12"/><path d="m12 2 2.12 2.12"/><path d="M12 22v-2.12"/></svg>
+    <div className="text-left">
+      <div className="text-xs">GET IT ON</div>
+      <div className="text-sm font-semibold">Google Play</div>
+    </div>
+  </button>
+);
 
 
 export function SiteFooter() {
-  return (
-    <footer className="border-t bg-background text-foreground">
-      <div className="w-full bg-secondary/50">
-        <div className="container py-12">
-          <div className="p-8 rounded-lg">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
-              <div className="col-span-1 lg:col-span-2">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
-                      <div>
-                        <h4 className="font-headline font-semibold mb-4">Company</h4>
-                        <ul className="space-y-2">
-                          <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">EcoCart</Link></li>
-                          <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">EcoCart+</Link></li>
-                          <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">The blog</Link></li>
-                          <li><Link href="/sustainability-report" className="text-sm text-muted-foreground hover:text-primary">Sustainability</Link></li>
-                          <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Help center</Link></li>
-                           <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Contact</Link></li>
-                        </ul>
-                      </div>
-                       <div>
-                        <h4 className="font-headline font-semibold mb-4">Account</h4>
-                        <ul className="space-y-2">
-                          <li><Link href="/account" className="text-sm text-muted-foreground hover:text-primary">My orders</Link></li>
-                          <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">My quotes</Link></li>
-                          <li><Link href="/account" className="text-sm text-muted-foreground hover:text-primary">My profile</Link></li>
-                          <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Track order</Link></li>
-                        </ul>
-                      </div>
-                      <div>
-                        <h4 className="font-headline font-semibold mb-4">Shop</h4>
-                        <ul className="space-y-2">
-                          <li><Link href="/products" className="text-sm text-muted-foreground hover:text-primary">All products</Link></li>
-                          <li><Link href="/brands" className="text-sm text-muted-foreground hover:text-primary">Brands</Link></li>
-                          <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Samples</Link></li>
-                        </ul>
-                      </div>
-                      <div className="mt-8 sm:mt-0 col-span-2 sm:col-span-1">
-                        <h4 className="font-headline font-semibold mb-4">Partners</h4>
-                        <ul className="space-y-2">
-                          <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Supplier application</Link></li>
-                        </ul>
-                      </div>
-                  </div>
-                </div>
+  const [showScroll, setShowScroll] = useState(false);
 
-                <div className="col-span-1 md:col-span-2 lg:col-span-2">
-                  <h4 className="font-headline font-semibold mb-2">Join us! Special offers, tips, tricks and more</h4>
-                   <div className="flex w-full max-w-sm items-center space-x-2">
-                      <Input type="email" placeholder="hello@thisismyemail.com" className="bg-white" />
-                      <Button type="submit" style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>Subscribe</Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">By subscribing you will receive marketing from EcoCart. See Privacy Policy</p>
-                </div>
+  useEffect(() => {
+    const checkScrollTop = () => {
+      if (!showScroll && window.pageYOffset > 400) {
+        setShowScroll(true);
+      } else if (showScroll && window.pageYOffset <= 400) {
+        setShowScroll(false);
+      }
+    };
+    window.addEventListener('scroll', checkScrollTop);
+    return () => window.removeEventListener('scroll', checkScrollTop);
+  }, [showScroll]);
+
+  const scrollTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <footer className="bg-background text-sm text-foreground/80 border-t">
+      <div className="container py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+          <div>
+            <h4 className="font-semibold mb-4 uppercase">About Us</h4>
+            <ul className="space-y-2">
+              <li><Link href="#" className="hover:text-primary">Purple Style Labs</Link></li>
+              <li><Link href="#" className="hover:text-primary">Pernia's Pop Up Show</Link></li>
+              <li><Link href="#" className="hover:text-primary">Studio Locator</Link></li>
+              <li><Link href="#" className="hover:text-primary">First Look</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-4 uppercase">Quick Links</h4>
+            <ul className="space-y-2">
+              <li><Link href="#" className="hover:text-primary">Bestsellers</Link></li>
+              <li><Link href="#" className="hover:text-primary">Exclusive</Link></li>
+              <li><Link href="#" className="hover:text-primary">Sale</Link></li>
+              <li><Link href="#" className="hover:text-primary">Gift Cards</Link></li>
+              <li><Link href="#" className="hover:text-primary">Celebrity Closet</Link></li>
+              <li><Link href="#" className="hover:text-primary">Personal Styling</Link></li>
+              <li><Link href="#" className="text-destructive font-semibold hover:text-destructive/80">Occasions</Link></li>
+              <li><Link href="#" className="hover:text-primary">Client Diaries</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-4 uppercase">Customer Care</h4>
+            <ul className="space-y-2">
+              <li><Link href="#" className="hover:text-primary">Shipping Information</Link></li>
+              <li><Link href="#" className="hover:text-primary">Returns & Exchange</Link></li>
+              <li><Link href="#" className="hover:text-primary">Terms & Conditions</Link></li>
+              <li><Link href="#" className="hover:text-primary">Privacy & Cookie Policies</Link></li>
+              <li><Link href="#" className="hover:text-primary">FAQs</Link></li>
+              <li><Link href="#" className="hover:text-primary">Site Map</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-4 uppercase">Contact Us</h4>
+            <ul className="space-y-2">
+              <li className="flex items-center gap-2"><Phone className="h-4 w-4"/> +91 78478 48484</li>
+              <li className="flex items-center gap-2"><MessageSquare className="h-4 w-4"/> Whatsapp us on +91 84880 70070</li>
+              <li className="flex items-center gap-2"><Mail className="h-4 w-4"/> customercare@perniaspopupshop.com</li>
+            </ul>
+            <h4 className="font-semibold mt-6 mb-4 uppercase">Follow Us</h4>
+            <div className="flex items-center gap-3">
+              <Link href="#" aria-label="Facebook"><Facebook className="h-5 w-5 hover:text-primary" /></Link>
+              <Link href="#" aria-label="Instagram"><Instagram className="h-5 w-5 hover:text-primary" /></Link>
+              <Link href="#" aria-label="X"><XIcon className="h-4 w-4 hover:text-primary" /></Link>
+              <Link href="#" aria-label="Pinterest"><PinterestIcon className="h-5 w-5 hover:text-primary" /></Link>
+              <Link href="#" aria-label="Youtube"><Youtube className="h-5 w-5 hover:text-primary" /></Link>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-4 uppercase">Get Pernia's Pop-up Shop App</h4>
+            <p className="mb-4">We will send you a link on your Email or Phone, open it on your phone and download the App.</p>
+            <RadioGroup defaultValue="email" className="flex gap-4 mb-4">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="email" id="r-email" />
+                <Label htmlFor="r-email">Email</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="phone" id="r-phone" />
+                <Label htmlFor="r-phone">Phone</Label>
+              </div>
+            </RadioGroup>
+            <div className="flex items-center gap-2 mb-4">
+              <Input placeholder="Email Address" className="bg-secondary/50"/>
+              <Button className="bg-neutral-800 text-white hover:bg-black text-xs h-10">SHARE APP LINK</Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <AppStoreButton/>
+              <GooglePlayButton/>
             </div>
           </div>
         </div>
       </div>
-
-      <div className="container flex flex-col sm:flex-row justify-between items-center gap-4 py-6">
-        <div className="flex items-center gap-4">
-           <Logo />
-           <div className="flex items-center gap-4">
-              <Link href="#" aria-label="Instagram"><Instagram className="h-5 w-5 text-muted-foreground hover:text-primary" /></Link>
-              <Link href="#" aria-label="Facebook"><Facebook className="h-5 w-5 text-muted-foreground hover:text-primary" /></Link>
-              <Link href="#" aria-label="TikTok"><TikTokIcon className="h-5 w-5 text-muted-foreground hover:text-primary" /></Link>
-              <Link href="#" aria-label="Pinterest"><PinterestIcon className="h-5 w-5 text-muted-foreground hover:text-primary" /></Link>
-              <Link href="#" aria-label="LinkedIn"><Linkedin className="h-5 w-5 text-muted-foreground hover:text-primary" /></Link>
-           </div>
-        </div>
-        <div className="text-sm text-muted-foreground flex items-center gap-4">
-          <FirebaseConnectionStatus />
-          <span>&copy; EcoCart {new Date().getFullYear()}</span>
-          <Link href="#" className="hover:text-primary">T & C's</Link>
-          <Link href="#" className="hover:text-primary">Privacy Policy</Link>
+      <div className="border-t">
+        <div className="container py-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center text-xs uppercase tracking-wider">
+          <div className="flex items-center justify-center gap-3">
+            <MessageCircle className="h-6 w-6"/>
+            <span>24x7 Customer Support</span>
+          </div>
+          <div className="flex items-center justify-center gap-3">
+            <HangerIcon className="h-6 w-6"/>
+            <span>500+ Designers</span>
+          </div>
+          <div className="flex items-center justify-center gap-3">
+            <Plane className="h-6 w-6"/>
+            <span>Free International Shipping*</span>
+          </div>
         </div>
       </div>
+      <div className="border-t bg-secondary/30">
+        <div className="container py-6 grid md:grid-cols-2 gap-8 items-center">
+            <div>
+              <h4 className="font-semibold uppercase">Completely Safe and Secure Payment Method</h4>
+              <p className="text-xs mt-1">We accept Netbanking, all major credit cards. We also accept orders with cash payment</p>
+              <div className="flex items-center gap-2 mt-2">
+                  {/* Placeholder for payment icons */}
+                  <span className="font-bold text-lg">VISA</span>
+                  <span className="font-bold text-lg text-blue-500">PayPal</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-xs">Sign up to get exclusive style tips, new arrival updates and a special discount code.</p>
+              <div className="flex justify-end items-center gap-2 mt-2">
+                <Input placeholder="Here's my Email" className="bg-white max-w-xs"/>
+                <Button className="bg-neutral-800 text-white hover:bg-black">Sign Up</Button>
+              </div>
+            </div>
+        </div>
+      </div>
+      {showScroll && (
+        <Button onClick={scrollTop} variant="secondary" className="fixed bottom-4 right-4 z-50 h-10 w-10 rounded-full p-0 shadow-lg">
+          <ArrowUp className="h-5 w-5" />
+        </Button>
+      )}
     </footer>
   );
 }

@@ -120,7 +120,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  if (error || !product) {
+  if (!product) {
     return notFound();
   }
 
@@ -146,7 +146,7 @@ export default function ProductDetailPage() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 px-8">
         {/* Left image gallery */}
-        <div className="md:col-span-7 grid grid-cols-12 gap-4">
+        <div className="md:col-span-5 grid grid-cols-12 gap-4">
           <div className="col-span-2">
             <div className="flex flex-col gap-3">
               {product.images?.map((image) => (
@@ -174,7 +174,7 @@ export default function ProductDetailPage() {
                   alt={selectedImage.description || product.name}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 80vw, 50vw"
+                  sizes="(max-width: 768px) 80vw, 42vw"
                   priority
                 />
               ) : <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>}
@@ -183,7 +183,7 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Right sticky column */}
-        <div className="md:col-span-5">
+        <div className="md:col-span-7">
            <div className="md:sticky md:top-24">
               <div className="space-y-4">
                 <div className="flex justify-between items-start">

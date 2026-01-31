@@ -9,9 +9,8 @@ import { useDoc } from '@/firebase/firestore/use-doc';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useFirestore } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';
-import { Loader2, Heart, Copy, MessageSquare, Phone, Scissors, Camera, Truck, Wand2, Info } from 'lucide-react';
+import { Loader2, Heart, Copy, MessageSquare, Scissors, Camera, Truck, Wand2 } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
-import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
@@ -22,7 +21,6 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const { addToCart } = useCart();
   const db = useFirestore();
-  const { loading: authLoading } = useAuth();
   const { toast } = useToast();
 
   const productRef = useMemo(() => {
@@ -86,7 +84,7 @@ export default function ProductDetailPage() {
     }
   }, [availableSizes, selectedSize]);
 
-  const isLoading = authLoading || isLoadingProduct || !db;
+  const isLoading = isLoadingProduct || !db;
 
   if (isLoading) {
     return (
@@ -101,12 +99,16 @@ export default function ProductDetailPage() {
   }
 
   const handleAddToCart = () => {
-    addToCart(product, 1);
+    if (product) {
+      addToCart(product, 1);
+    }
   };
   
   const handleBuyNow = () => {
-    addToCart(product, 1);
-    router.push('/checkout');
+    if (product) {
+      addToCart(product, 1);
+      router.push('/checkout');
+    }
   };
 
   const discountPercent = product.originalPrice && product.price

@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/sheet';
 import { ProductsDrawer } from './products-drawer';
 import { Separator } from './ui/separator';
+import { BrandsDialog } from './brands-dialog';
 
 function CartButton() {
   const { cartCount } = useCart();
@@ -127,7 +128,6 @@ export function SiteHeader() {
   }, []);
 
   const navLinks = [
-    { href: '/brands', label: 'Brands' },
     { href: '/products', label: 'All Products' },
   ];
 
@@ -230,7 +230,7 @@ export function SiteHeader() {
                 </button>
               </SheetTrigger>
               <SheetContent side="left" className="w-full sm:max-w-sm flex flex-col">
-                <SheetHeader className="text-left">
+                <SheetHeader className="p-6 text-left">
                   <SheetTitle className="text-2xl font-headline font-bold">Shop by Category</SheetTitle>
                   <SheetDescription>
                     Browse our products by category and sub-category.
@@ -239,6 +239,7 @@ export function SiteHeader() {
                 <ProductsDrawer onLinkClick={() => setProductsDrawerOpen(false)} />
               </SheetContent>
             </Sheet>
+            <BrandsDialog />
             {navLinks.map(link => (
               <Link
                 key={link.label}

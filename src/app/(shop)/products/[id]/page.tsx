@@ -211,12 +211,12 @@ export default function ProductDetailPage() {
           {/* Product Details */}
           <div className="lg:col-span-7">
             {brand && (
-              <h2 className="text-2xl font-bold tracking-widest uppercase">
+              <h2 className="text-xl font-bold tracking-widest uppercase">
                 {brand.name}
               </h2>
             )}
             <div className="flex justify-between items-start">
-              <h1 className="text-lg text-muted-foreground mt-1">
+              <h1 className="text-base text-muted-foreground mt-1">
                 {product.name}
               </h1>
               <Button variant="ghost" size="icon">
@@ -224,7 +224,7 @@ export default function ProductDetailPage() {
               </Button>
             </div>
 
-            <p className="text-2xl font-semibold my-4">
+            <p className="text-xl font-semibold my-4">
               DH{product.price.toFixed(2)}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -235,7 +235,7 @@ export default function ProductDetailPage() {
 
             <div className="mt-6">
               <div className="flex justify-between items-center mb-2">
-                <Label className="text-base font-semibold">
+                <Label className="text-sm font-semibold">
                   Select your size
                 </Label>
                 <Sheet>
@@ -300,20 +300,20 @@ export default function ProductDetailPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
               <div className="md:col-span-2">
-                <h3 className="font-semibold uppercase tracking-wider mb-2">
+                <h3 className="text-sm font-semibold uppercase tracking-wider mb-2">
                   Product Description
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {product.description}
                 </p>
               </div>
               <div>
                 {product.productCode && (
                   <div>
-                    <h3 className="font-semibold uppercase tracking-wider mb-2">
+                    <h3 className="text-sm font-semibold uppercase tracking-wider mb-2">
                       Product Code
                     </h3>
-                    <p className="text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       {product.productCode}
                     </p>
                     <Button
@@ -335,36 +335,36 @@ export default function ProductDetailPage() {
             <div className="grid grid-cols-2 gap-y-4 gap-x-8 pt-4">
               {product.fit && (
                 <div>
-                  <h3 className="font-semibold uppercase tracking-wider">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider">
                     Fit
                   </h3>
-                  <p className="text-muted-foreground">{product.fit}</p>
+                  <p className="text-sm text-muted-foreground">{product.fit}</p>
                 </div>
               )}
               {product.composition && (
                 <div>
-                  <h3 className="font-semibold uppercase tracking-wider">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider">
                     Composition
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {product.composition}
                   </p>
                 </div>
               )}
               {product.care && (
                 <div>
-                  <h3 className="font-semibold uppercase tracking-wider">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider">
                     Care
                   </h3>
-                  <p className="text-muted-foreground">{product.care}</p>
+                  <p className="text-sm text-muted-foreground">{product.care}</p>
                 </div>
               )}
               {product.materials && product.materials.length > 0 && (
                 <div>
-                  <h3 className="font-semibold uppercase tracking-wider">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider">
                     Components
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {product.materials.join(', ')}
                   </p>
                 </div>

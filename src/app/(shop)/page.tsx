@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { PackagingAlliance } from '@/components/packaging-alliance';
-import { PackagingForBrands } from '@/components/packaging-for-brands';
 import { SignupBanner } from '@/components/signup-banner';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useFirestore } from '@/firebase/provider';
@@ -243,8 +242,6 @@ export default function HomePage() {
       <CelebrityCloset />
 
       <BrandStories />
-
-      <PackagingForBrands />
 
       <SignupBanner />
     </>

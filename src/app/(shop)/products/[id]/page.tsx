@@ -18,11 +18,13 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetDescription,
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/context/cart-context';
 import { ProductCallouts } from '@/components/product-callouts';
 import { ProductInfoSections } from '@/components/product-info-sections';
+import { VirtualTryOn } from '@/components/virtual-try-on';
 
 const RECENTLY_VIEWED_KEY = 'recentlyViewed';
 const MAX_RECENTLY_VIEWED = 10;
@@ -37,18 +39,6 @@ const defaultSizes: Size[] = [
   { id: '3xl', name: '3XL', shortName: '3XL' },
   { id: '4xl', name: '4XL', shortName: '4XL' },
 ];
-
-function SizeGuide() {
-    return (
-      <div className="space-y-4">
-        <p>Use the chart below to determine your size. If you’re on the borderline between two sizes, order the smaller size for a tighter fit or the larger size for a looser fit.</p>
-        <div className="border rounded-lg p-4 text-center">
-            <p className="font-semibold">Size Chart Coming Soon</p>
-            <p className="text-sm text-muted-foreground">Please refer to product description for now.</p>
-        </div>
-      </div>
-    )
-}
 
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
@@ -159,9 +149,9 @@ export default function ProductDetailPage() {
   return (
     <div className="py-8 md:py-12">
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Image Gallery */}
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-1">
             <div className="relative">
               <div className="flex flex-row-reverse gap-4">
                 <div className="flex-1 aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
@@ -209,14 +199,14 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Product Details */}
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-1">
             {brand && (
-              <h2 className="text-2xl font-bold tracking-widest uppercase">
+              <h2 className="text-3xl font-bold tracking-widest uppercase">
                 {brand.name}
               </h2>
             )}
             <div className="flex justify-between items-start">
-              <h1 className="text-sm text-muted-foreground mt-1">
+              <h1 className="text-xs text-muted-foreground mt-1">
                 {product.name}
               </h1>
               <Button variant="ghost" size="icon">
@@ -224,7 +214,7 @@ export default function ProductDetailPage() {
               </Button>
             </div>
 
-            <p className="text-lg font-semibold my-4">
+            <p className="text-base font-semibold my-4">
               DH{product.price.toFixed(2)}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -244,15 +234,16 @@ export default function ProductDetailPage() {
                       variant="link"
                       className="text-xs p-0 h-auto text-primary"
                     >
-                      Size Guide
+                      Size Guide & Virtual Try-On
                     </Button>
                   </SheetTrigger>
-                  <SheetContent>
+                  <SheetContent className="w-full sm:max-w-4xl">
                     <SheetHeader>
-                      <SheetTitle>Size Guide</SheetTitle>
+                      <SheetTitle>Virtual Try-On</SheetTitle>
+                      <SheetDescription>See how this item looks on you.</SheetDescription>
                     </SheetHeader>
                     <div className="py-4">
-                      <SizeGuide />
+                      <VirtualTryOn product={product} />
                     </div>
                   </SheetContent>
                 </Sheet>

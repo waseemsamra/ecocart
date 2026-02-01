@@ -59,8 +59,6 @@ const productSchema = z.object({
   fit: z.string().optional(),
   composition: z.string().optional(),
   care: z.string().optional(),
-  shippingInfo: z.string().optional(),
-  disclaimer: z.string().optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -106,8 +104,6 @@ export function ProductForm({ product }: { product?: Product }) {
           fit: product.fit || '',
           composition: product.composition || '',
           care: product.care || '',
-          shippingInfo: product.shippingInfo || '',
-          disclaimer: product.disclaimer || '',
         }
       : {
           name: '',
@@ -135,8 +131,6 @@ export function ProductForm({ product }: { product?: Product }) {
           fit: '',
           composition: '',
           care: '',
-          shippingInfo: '',
-          disclaimer: '',
         },
   });
   
@@ -460,12 +454,6 @@ export function ProductForm({ product }: { product?: Product }) {
                         )} />
                         <FormField control={form.control} name="care" render={({ field }) => (
                             <FormItem><FormLabel>Care</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <FormField control={form.control} name="shippingInfo" render={({ field }) => (
-                            <FormItem><FormLabel>Get In Touch Text</FormLabel><FormControl><Input {...field} placeholder="Want the best deal, custom fit, or early delivery?" /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <FormField control={form.control} name="disclaimer" render={({ field }) => (
-                            <FormItem><FormLabel>Price Match Promise Text</FormLabel><FormControl><Input {...field} placeholder="If you find the product for less we'll match it! (T&C Applied)" /></FormControl><FormMessage /></FormItem>
                         )} />
                     </CardContent>
                 </Card>

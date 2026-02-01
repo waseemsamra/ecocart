@@ -21,6 +21,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/context/cart-context';
 import { useRouter } from 'next/navigation';
+import { ProductCallouts } from '@/components/product-callouts';
 
 const defaultSizes: Size[] = [
   { id: 'xs', name: 'Extra Small', shortName: 'XS' },
@@ -141,9 +142,6 @@ export default function ProductDetailPage() {
   if (!product) {
     return notFound();
   }
-  
-  const disclaimerText = product.disclaimer || "If you find the product for less we'll match it! (T&C Applied)";
-  const disclaimerParts = disclaimerText.split('(T&C Applied)');
 
   return (
     <div className="py-8 md:py-12">
@@ -151,14 +149,7 @@ export default function ProductDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
                 
                 {/* Image Gallery */}
-                <div className="lg:col-span-5 flex flex-row gap-4">
-                    <div className="flex flex-col gap-2 overflow-y-auto pr-2">
-                        {images.map((image, index) => (
-                            <button key={image.id || index} onClick={() => setSelectedImage(index)} className={`shrink-0 w-20 h-24 rounded-md overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}>
-                                <Image src={image.imageUrl || 'https://placehold.co/80x96'} alt={image.description || product.name} width={80} height={96} className="w-full h-full object-cover" unoptimized />
-                            </button>
-                        ))}
-                    </div>
+                <div className="lg:col-span-7 flex flex-row-reverse gap-4">
                     <div className="flex-1 aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
                         {images.length > 0 && images[selectedImage]?.imageUrl ? (
                             <Image
@@ -173,10 +164,17 @@ export default function ProductDetailPage() {
                             <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>
                         )}
                     </div>
+                     <div className="flex flex-col gap-2 overflow-y-auto pr-2">
+                        {images.map((image, index) => (
+                            <button key={image.id || index} onClick={() => setSelectedImage(index)} className={`shrink-0 w-20 h-24 rounded-md overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}>
+                                <Image src={image.imageUrl || 'https://placehold.co/80x96'} alt={image.description || product.name} width={80} height={96} className="w-full h-full object-cover" unoptimized />
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Product Details */}
-                <div className="lg:col-span-7">
+                <div className="lg:col-span-5">
                     {brand && <h2 className="text-2xl font-bold tracking-widest uppercase">{brand.name}</h2>}
                     <div className="flex justify-between items-start">
                         <h1 className="text-lg text-muted-foreground mt-1">{product.name}</h1>
@@ -212,39 +210,17 @@ export default function ProductDetailPage() {
                     </div>
                     
                     <div className="mt-8 grid grid-cols-2 gap-4">
-                        <Button onClick={handleBuyNow} size="lg" className="bg-black text-white hover:bg-black/80 rounded-sm w-full h-12">
+                        <Button size="lg" className="bg-black text-white hover:bg-black/80 rounded-sm w-full h-12" onClick={handleBuyNow}>
                             BUY NOW
                         </Button>
-                        <Button onClick={handleAddToCart} size="lg" variant="outline" className="rounded-sm w-full h-12">
+                        <Button size="lg" variant="outline" className="rounded-sm w-full h-12" onClick={handleAddToCart}>
                             ADD TO CART
                         </Button>
                     </div>
 
+                    <ProductCallouts />
+
                     <div className="mt-8 space-y-6 text-sm">
-                        <Separator />
-                        <div>
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h3 className="font-semibold uppercase tracking-wider">GET IN TOUCH</h3>
-                                    <p className="text-muted-foreground">{product.shippingInfo || 'Want the best deal, custom fit, or early delivery?'}</p>
-                                </div>
-                                <Button variant="link" className="text-red-500 font-semibold">CHAT WITH US</Button>
-                            </div>
-                        </div>
-                        <Separator />
-                        <div>
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h3 className="font-semibold uppercase tracking-wider">PRICE MATCH PROMISE</h3>
-                                    <p className="text-muted-foreground">
-                                        {disclaimerParts[0]}
-                                        {disclaimerParts.length > 1 && <span className="text-red-500">(T&C Applied)</span>}
-                                        {disclaimerParts[1]}
-                                    </p>
-                                </div>
-                                <Button variant="link" className="text-red-500 font-semibold">KNOW MORE</Button>
-                            </div>
-                        </div>
                         <Separator />
 
                         <div>

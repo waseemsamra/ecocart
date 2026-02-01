@@ -80,6 +80,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+    match /productCallouts/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
 
     // --- Settings Collections ---
     

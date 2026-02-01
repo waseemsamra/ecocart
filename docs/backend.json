@@ -959,6 +959,21 @@
         "duration",
         "cost"
       ]
+    },
+    "ProductCallout": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ProductCallout",
+      "type": "object",
+      "description": "Represents a call-to-action block on the product detail page, like 'Get in Touch' or 'Price Match Promise'.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "linkText": { "type": "string" },
+        "linkHref": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["id", "title", "description", "linkText"]
     }
   },
   "auth": {
@@ -1221,6 +1236,22 @@
             {
               "name": "trendingItemId",
               "description": "The unique identifier for the trending item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/productCallouts/{calloutId}",
+        "definition": {
+          "entityName": "ProductCallout",
+          "schema": {
+            "$ref": "#/backend/entities/ProductCallout"
+          },
+          "description": "Stores content for the product detail page callout sections. Publicly readable, write access restricted to administrators.",
+          "params": [
+            {
+              "name": "calloutId",
+              "description": "The unique identifier for the callout."
             }
           ]
         }

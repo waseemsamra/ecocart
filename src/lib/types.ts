@@ -36,8 +36,6 @@ export interface Product {
   fit?: string;
   composition?: string;
   care?: string;
-  shippingInfo?: string;
-  disclaimer?: string;
 }
 
 export interface CartItem extends Product {
@@ -229,4 +227,15 @@ export interface BestSellingDesigners {
   id: string;
   brandIds: string[];
   updatedAt?: any;
+}
+
+export interface ProductCallout {
+    id: string;
+    title: string;
+    description: string;
+    linkText: string;
+    linkHref: string;
+    order: number;
+    createdAt?: any;
+    updatedAt?: any;
 }

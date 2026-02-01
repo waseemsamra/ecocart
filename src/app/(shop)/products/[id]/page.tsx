@@ -158,121 +158,224 @@ export default function ProductDetailPage() {
 
   return (
     <div className="py-8 md:py-12">
-        <div className="px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-12">
-                
-                {/* Image Gallery */}
-                <div
-                  className="lg:col-span-1"
-                >
-                    <div 
-                      className="flex flex-row-reverse gap-4"
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          {/* Image Gallery */}
+          <div className="lg:col-span-5">
+            <div className="relative resize-both overflow-auto border-2 border-dashed border-blue-500 p-2">
+              <div className="flex flex-row-reverse gap-4">
+                <div className="flex-1 aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
+                  {images.length > 0 && images[selectedImage]?.imageUrl ? (
+                    <Image
+                      src={images[selectedImage].imageUrl!}
+                      alt={
+                        images[selectedImage].description || product.name
+                      }
+                      fill
+                      className="object-cover"
+                      priority
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                      No Image
+                    </div>
+                  )}
+                </div>
+                <div className="w-20 shrink-0 flex flex-col gap-2 overflow-y-auto pr-2">
+                  {images.map((image, index) => (
+                    <button
+                      key={image.id || index}
+                      onClick={() => setSelectedImage(index)}
+                      className={`block w-full aspect-[3/4] rounded-md overflow-hidden border-2 transition-colors ${
+                        selectedImage === index
+                          ? 'border-primary'
+                          : 'border-transparent'
+                      }`}
                     >
-                        <div className="flex-1 aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
-                            {images.length > 0 && images[selectedImage]?.imageUrl ? (
-                                <Image
-                                    src={images[selectedImage].imageUrl!}
-                                    alt={images[selectedImage].description || product.name}
-                                    fill
-                                    className="object-cover"
-                                    priority
-                                    unoptimized
-                                />
-                            ) : (
-                                <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>
-                            )}
-                        </div>
-                         <div className="w-20 shrink-0 flex flex-col gap-2 overflow-y-auto pr-2">
-                            {images.map((image, index) => (
-                                <button key={image.id || index} onClick={() => setSelectedImage(index)} className={`block w-full aspect-[3/4] rounded-md overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}>
-                                    <Image src={image.imageUrl || 'https://placehold.co/80x96'} alt={image.description || product.name} width={80} height={96} className="w-full h-full object-cover" unoptimized />
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                      <Image
+                        src={image.imageUrl || 'https://placehold.co/80x96'}
+                        alt={image.description || product.name}
+                        width={80}
+                        height={96}
+                        className="w-full h-full object-cover"
+                        unoptimized
+                      />
+                    </button>
+                  ))}
                 </div>
+              </div>
+            </div>
+          </div>
 
-                {/* Product Details */}
-                <div className="lg:col-span-3">
-                    {brand && <h2 className="text-2xl font-bold tracking-widest uppercase">{brand.name}</h2>}
-                    <div className="flex justify-between items-start">
-                        <h1 className="text-lg text-muted-foreground mt-1">{product.name}</h1>
-                        <Button variant="ghost" size="icon"><Heart className="h-6 w-6"/></Button>
+          {/* Product Details */}
+          <div className="lg:col-span-7">
+            {brand && (
+              <h2 className="text-2xl font-bold tracking-widest uppercase">
+                {brand.name}
+              </h2>
+            )}
+            <div className="flex justify-between items-start">
+              <h1 className="text-lg text-muted-foreground mt-1">
+                {product.name}
+              </h1>
+              <Button variant="ghost" size="icon">
+                <Heart className="h-6 w-6" />
+              </Button>
+            </div>
+
+            <p className="text-2xl font-semibold my-4">
+              DH{product.price.toFixed(2)}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Incl. of taxes, excl. custom duties
+            </p>
+
+            <Separator className="my-6" />
+
+            <div className="mt-6">
+              <div className="flex justify-between items-center mb-2">
+                <Label className="text-base font-semibold">
+                  Select your size
+                </Label>
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="link"
+                      className="text-sm p-0 h-auto text-primary"
+                    >
+                      Size Guide
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent>
+                    <SheetHeader>
+                      <SheetTitle>Size Guide</SheetTitle>
+                    </SheetHeader>
+                    <div className="py-4">
+                      <SizeGuide />
                     </div>
-                    
-                    <p className="text-2xl font-semibold my-4">DH{product.price.toFixed(2)}</p>
-                    <p className="text-xs text-muted-foreground">Incl. of taxes, excl. custom duties</p>
-                    
-                    <Separator className="my-6" />
+                  </SheetContent>
+                </Sheet>
+              </div>
+              <RadioGroup
+                defaultValue="m"
+                className="flex flex-wrap gap-2"
+              >
+                {defaultSizes.map(size => (
+                  <Label
+                    key={size.id}
+                    htmlFor={size.id}
+                    className={`relative flex items-center justify-center rounded-md border p-3 cursor-pointer hover:bg-muted has-[:checked]:border-primary w-14 h-12`}
+                  >
+                    <RadioGroupItem
+                      value={size.id}
+                      id={size.id}
+                      className="sr-only"
+                    />
+                    <span className="font-semibold">{size.shortName}</span>
+                  </Label>
+                ))}
+              </RadioGroup>
+            </div>
 
-                    <div className="mt-6">
-                        <div className="flex justify-between items-center mb-2">
-                            <Label className="text-base font-semibold">Select your size</Label>
-                            <Sheet>
-                                <SheetTrigger asChild>
-                                    <Button variant="link" className="text-sm p-0 h-auto text-primary">Size Guide</Button>
-                                </SheetTrigger>
-                                <SheetContent>
-                                    <SheetHeader><SheetTitle>Size Guide</SheetTitle></SheetHeader>
-                                    <div className="py-4"><SizeGuide /></div>
-                                </SheetContent>
-                            </Sheet>
-                        </div>
-                        <RadioGroup defaultValue="m" className="flex flex-wrap gap-2">
-                            {defaultSizes.map(size => (
-                                <Label key={size.id} htmlFor={size.id} className={`relative flex items-center justify-center rounded-md border p-3 cursor-pointer hover:bg-muted has-[:checked]:border-primary w-14 h-12`}>
-                                    <RadioGroupItem value={size.id} id={size.id} className="sr-only"/>
-                                    <span className="font-semibold">{size.shortName}</span>
-                                </Label>
-                            ))}
-                        </RadioGroup>
-                    </div>
-                    
-                    <div className="mt-8 grid grid-cols-2 gap-4">
-                        <Button size="lg" className="bg-black text-white hover:bg-black/80 rounded-sm w-full h-12" onClick={handleBuyNow}>
-                            BUY NOW
-                        </Button>
-                        <Button size="lg" variant="outline" className="rounded-sm w-full h-12" onClick={handleAddToCart}>
-                            ADD TO CART
-                        </Button>
-                    </div>
+            <div className="mt-8 grid grid-cols-2 gap-4">
+              <Button
+                size="lg"
+                className="bg-black text-white hover:bg-black/80 rounded-sm w-full h-12"
+                onClick={handleBuyNow}
+              >
+                BUY NOW
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="rounded-sm w-full h-12"
+                onClick={handleAddToCart}
+              >
+                ADD TO CART
+              </Button>
+            </div>
 
-                    <ProductCallouts />
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
-                        <div className="md:col-span-2">
-                            <h3 className="font-semibold uppercase tracking-wider mb-2">Product Description</h3>
-                            <p className="text-muted-foreground">{product.description}</p>
-                        </div>
-                        <div>
-                            {product.productCode && (
-                                <div>
-                                    <h3 className="font-semibold uppercase tracking-wider mb-2">Product Code</h3>
-                                    <p className="text-muted-foreground">{product.productCode}</p>
-                                    <Button asChild variant="link" className="text-red-500 font-semibold p-0 h-auto mt-1 text-sm">
-                                      <Link href="#">View Supplier Information</Link>
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+            <ProductCallouts />
 
-                    <ProductInfoSections />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
+              <div className="md:col-span-2">
+                <h3 className="font-semibold uppercase tracking-wider mb-2">
+                  Product Description
+                </h3>
+                <p className="text-muted-foreground">
+                  {product.description}
+                </p>
+              </div>
+              <div>
+                {product.productCode && (
+                  <div>
+                    <h3 className="font-semibold uppercase tracking-wider mb-2">
+                      Product Code
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {product.productCode}
+                    </p>
+                    <Button
+                      asChild
+                      variant="link"
+                      className="text-red-500 font-semibold p-0 h-auto mt-1 text-sm"
+                    >
+                      <Link href="#">View Supplier Information</Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
 
-                    <Separator />
+            <ProductInfoSections />
 
-                    <div className="grid grid-cols-2 gap-y-4 gap-x-8 pt-4">
-                         {product.fit && <div><h3 className="font-semibold uppercase tracking-wider">Fit</h3><p className="text-muted-foreground">{product.fit}</p></div>}
-                        {product.composition && <div><h3 className="font-semibold uppercase tracking-wider">Composition</h3><p className="text-muted-foreground">{product.composition}</p></div>}
-                        {product.care && <div><h3 className="font-semibold uppercase tracking-wider">Care</h3><p className="text-muted-foreground">{product.care}</p></div>}
-                        {product.materials && product.materials.length > 0 && <div><h3 className="font-semibold uppercase tracking-wider">Components</h3><p className="text-muted-foreground">{product.materials.join(', ')}</p></div>}
-                    </div>
+            <Separator />
+
+            <div className="grid grid-cols-2 gap-y-4 gap-x-8 pt-4">
+              {product.fit && (
+                <div>
+                  <h3 className="font-semibold uppercase tracking-wider">
+                    Fit
+                  </h3>
+                  <p className="text-muted-foreground">{product.fit}</p>
                 </div>
+              )}
+              {product.composition && (
+                <div>
+                  <h3 className="font-semibold uppercase tracking-wider">
+                    Composition
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {product.composition}
+                  </p>
+                </div>
+              )}
+              {product.care && (
+                <div>
+                  <h3 className="font-semibold uppercase tracking-wider">
+                    Care
+                  </h3>
+                  <p className="text-muted-foreground">{product.care}</p>
+                </div>
+              )}
+              {product.materials && product.materials.length > 0 && (
+                <div>
+                  <h3 className="font-semibold uppercase tracking-wider">
+                    Components
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {product.materials.join(', ')}
+                  </p>
+                </div>
+              )}
             </div>
-            <div className="mt-16 md:mt-24">
-                <RelatedProducts />
-            </div>
+          </div>
         </div>
+        <div className="mt-16 md:mt-24">
+          <RelatedProducts />
+        </div>
+      </div>
     </div>
   );
 }

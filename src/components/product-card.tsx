@@ -28,7 +28,7 @@ export function ProductCard({ product, layout = 'grid', onClick }: ProductCardPr
                                 alt={image.description || product.name}
                                 fill
                                 className={cn(
-                                    "object-cover transition-opacity duration-300",
+                                    "object-cover object-top transition-opacity duration-300",
                                     hoverImage && "group-hover:opacity-0"
                                 )}
                                 data-ai-hint={image.imageHint}
@@ -39,7 +39,7 @@ export function ProductCard({ product, layout = 'grid', onClick }: ProductCardPr
                                     src={hoverImage.imageUrl}
                                     alt={hoverImage.description || product.name}
                                     fill
-                                    className="object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                                    className="object-cover object-top opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                                     data-ai-hint={hoverImage.imageHint}
                                     unoptimized
                                 />
@@ -81,7 +81,7 @@ export function ProductCard({ product, layout = 'grid', onClick }: ProductCardPr
                     alt={image.description || product.name}
                     fill
                     className={cn(
-                        "object-cover transition-opacity duration-300",
+                        "object-cover object-top transition-opacity duration-300",
                         hoverImage ? "group-hover:opacity-0" : "group-hover:scale-105"
                     )}
                     data-ai-hint={image.imageHint}
@@ -92,7 +92,7 @@ export function ProductCard({ product, layout = 'grid', onClick }: ProductCardPr
                         src={hoverImage.imageUrl}
                         alt={hoverImage.description || product.name}
                         fill
-                        className="object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-hover:scale-105"
+                        className="object-cover object-top opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-hover:scale-105"
                         data-ai-hint={hoverImage.imageHint}
                         unoptimized
                     />

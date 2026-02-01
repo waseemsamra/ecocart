@@ -9,6 +9,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import fs from 'fs';
+import path from 'path';
 
 const VirtualTryOnInputSchema = z.object({
   userPhotoDataUri: z
@@ -56,6 +58,31 @@ const virtualTryOnFlow = ai.defineFlow(
 
     if (!media?.url) {
       throw new Error('The AI model did not return an image. Please try again.');
+    }
+
+    // Save the generated image to a temporary folder for testing
+    try {
+      const dataUri = media.url;
+      const matches = dataUri.match(/^data:(image\/(\w+));base64,(.*)$/);
+      if (matches && matches.length === 4) {
+        const imageType = matches[2];
+        const base64Data = matches[3];
+        const buffer = Buffer.from(base64Data, 'base64');
+        const tempDir = path.join(process.cwd(), 'public', 'tmp');
+        
+        // Ensure the directory exists
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+        }
+
+        const filename = `try-on-${Date.now()}.${imageType}`;
+        const filePath = path.join(tempDir, filename);
+        fs.writeFileSync(filePath, buffer);
+        console.log(`Virtual try-on image saved to: /tmp/${filename}`);
+      }
+    } catch (e) {
+      // Log the error but don't fail the flow
+      console.error("Failed to save virtual try-on image:", e);
     }
 
     return { generatedImageUrl: media.url };

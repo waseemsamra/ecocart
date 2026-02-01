@@ -1,12 +1,13 @@
 'use client';
 
-import { useParams, notFound } from 'next/navigation';
+import { useParams, notFound, useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 import type { Product, Size, Brand } from '@/lib/types';
 import { doc, getDoc, collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import { Loader2, Heart } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -20,8 +21,10 @@ import {
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/context/cart-context';
-import { useRouter } from 'next/navigation';
 import { ProductCallouts } from '@/components/product-callouts';
+
+const RECENTLY_VIEWED_KEY = 'recentlyViewed';
+const MAX_RECENTLY_VIEWED = 10;
 
 const defaultSizes: Size[] = [
   { id: 'xs', name: 'Extra Small', shortName: 'XS' },
@@ -93,6 +96,15 @@ export default function ProductDetailPage() {
                     setBrand({ id: brandDoc.id, ...brandDoc.data() } as Brand);
                 }
            }
+            try {
+              const storedIds = localStorage.getItem(RECENTLY_VIEWED_KEY);
+              let recentIds = storedIds ? JSON.parse(storedIds) : [];
+              recentIds = recentIds.filter((id: string) => id !== productData!.id);
+              recentIds.unshift(productData!.id);
+              localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(recentIds.slice(0, MAX_RECENTLY_VIEWED)));
+            } catch (e) {
+                console.error("Could not update recently viewed products in localStorage", e);
+            }
         }
 
       } catch (e: any) {
@@ -218,23 +230,36 @@ export default function ProductDetailPage() {
                         </Button>
                     </div>
 
-                    <ProductCallouts />
-
                     <div className="mt-8 space-y-6 text-sm">
                         <Separator />
-
-                        <div>
-                            <h3 className="font-semibold uppercase tracking-wider mb-2">Product Description</h3>
-                            <p className="text-muted-foreground">{product.description}</p>
+                        <ProductCallouts />
+                        <Separator />
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4">
+                            <div className="md:col-span-2">
+                                <h3 className="font-semibold uppercase tracking-wider mb-2">Product Description</h3>
+                                <p className="text-muted-foreground">{product.description}</p>
+                            </div>
+                            <div>
+                                {product.productCode && (
+                                    <div>
+                                        <h3 className="font-semibold uppercase tracking-wider mb-2">Product Code</h3>
+                                        <p className="text-muted-foreground">{product.productCode}</p>
+                                        <Button asChild variant="link" className="text-red-500 font-semibold p-0 h-auto mt-1 text-sm">
+                                          <Link href="#">View Supplier Information</Link>
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-y-4 gap-x-8">
-                            {product.productCode && <div><h3 className="font-semibold uppercase tracking-wider">Product Code</h3><p className="text-muted-foreground">{product.productCode}</p></div>}
-                             {product.materials && product.materials.length > 0 && <div><h3 className="font-semibold uppercase tracking-wider">Components</h3><p className="text-muted-foreground">{product.materials.join(', ')}</p></div>}
-                            {product.fit && <div><h3 className="font-semibold uppercase tracking-wider">Fit</h3><p className="text-muted-foreground">{product.fit}</p></div>}
+                        <Separator />
+
+                        <div className="grid grid-cols-2 gap-y-4 gap-x-8 pt-4">
+                             {product.fit && <div><h3 className="font-semibold uppercase tracking-wider">Fit</h3><p className="text-muted-foreground">{product.fit}</p></div>}
                             {product.composition && <div><h3 className="font-semibold uppercase tracking-wider">Composition</h3><p className="text-muted-foreground">{product.composition}</p></div>}
                             {product.care && <div><h3 className="font-semibold uppercase tracking-wider">Care</h3><p className="text-muted-foreground">{product.care}</p></div>}
-                           
+                            {product.materials && product.materials.length > 0 && <div><h3 className="font-semibold uppercase tracking-wider">Components</h3><p className="text-muted-foreground">{product.materials.join(', ')}</p></div>}
                         </div>
                     </div>
                 </div>

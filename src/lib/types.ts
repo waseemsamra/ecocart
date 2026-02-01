@@ -43,12 +43,21 @@ export interface CartItem extends Product {
 }
 
 export interface Order {
-  id: string;
-  date: string;
+  id: string; // Document ID from Firestore
+  orderId: string; // Human-readable order reference like CC-1234
+  shippingDetails: {
+    name: string;
+    email: string;
+    address: string;
+    city: string;
+    zip: string;
+    country: string;
+  };
+  items: CartItem[];
   total: number;
-  status: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
-  customerName: string;
-  itemCount: number;
+  status: 'Processing' | 'Ready to Delivery' | 'Delivered' | 'Cancelled';
+  createdAt: any; // Firestore Timestamp
+  userId?: string | null; // Optional user ID if logged in
 }
 
 export interface User {

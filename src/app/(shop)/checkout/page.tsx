@@ -13,7 +13,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CreditCard, Loader2, Truck } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/context/auth-context';
+import { useFirestore } from '@/firebase/provider';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 const checkoutSchema = z.object({
   email: z.string().email(),
@@ -67,6 +70,9 @@ export default function CheckoutPage() {
   const { cartItems, cartTotal, clearCart } = useCart();
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useAuth();
+  const db = useFirestore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -85,7 +91,17 @@ export default function CheckoutPage() {
     }
   }, [cartItems, router]);
 
-  const onSubmit = (data: CheckoutFormValues) => {
+  const onSubmit = async (data: CheckoutFormValues) => {
+    if (!db) {
+      toast({
+        variant: 'destructive',
+        title: 'Database Error',
+        description: 'Could not connect to the database. Please try again.',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
     const orderId = `CC-${Date.now()}`;
 
     const orderDetails = {
@@ -100,22 +116,33 @@ export default function CheckoutPage() {
       },
       items: cartItems,
       total: cartTotal,
+      status: 'Processing' as const,
+      createdAt: serverTimestamp(),
+      userId: user?.uid || null,
     };
 
     try {
-      sessionStorage.setItem('latestOrder', JSON.stringify(orderDetails));
-    } catch (error) {
-      console.error("Could not save order to session storage", error);
-      toast({
-        variant: "destructive",
-        title: "Could not proceed to confirmation",
-        description: "There was an issue saving your order details. Please try again.",
-      });
-      return;
-    }
+      await addDoc(collection(db, 'orders'), orderDetails);
 
-    clearCart();
-    router.push('/order-confirmation');
+      const sessionOrderDetails = {
+          ...orderDetails,
+          createdAt: new Date().toISOString(),
+      };
+      sessionStorage.setItem('latestOrder', JSON.stringify(sessionOrderDetails));
+      
+      clearCart();
+      router.push('/order-confirmation');
+
+    } catch (error: any) {
+      console.error("Could not save order", error);
+      toast({
+        variant: 'destructive',
+        title: 'Could not place order',
+        description: error.message || 'There was an issue saving your order. Please try again.',
+      });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
   
   if (cartItems.length === 0) {
@@ -246,7 +273,8 @@ export default function CheckoutPage() {
                 </div>
               </CardContent>
             </Card>
-            <Button type="submit" size="lg" className="w-full mt-6">
+            <Button type="submit" size="lg" className="w-full mt-6" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Place Order
             </Button>
           </div>

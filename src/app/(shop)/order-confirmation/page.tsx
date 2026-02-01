@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, PackageCheck } from 'lucide-react';
 import type { CartItem } from '@/lib/types';
+import { format } from 'date-fns';
 
 interface ShippingDetails {
   name: string;
@@ -24,6 +25,7 @@ interface OrderDetails {
   shippingDetails: ShippingDetails;
   items: CartItem[];
   total: number;
+  createdAt: string; // ISO string
 }
 
 export default function OrderConfirmationPage() {
@@ -80,6 +82,9 @@ export default function OrderConfirmationPage() {
             </p>
             <p className="mt-4 text-sm font-semibold">
                 Order Reference: <span className="font-mono text-primary">{order.orderId}</span>
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+                Order placed on: {format(new Date(order.createdAt), 'PPP')}
             </p>
         </div>
 

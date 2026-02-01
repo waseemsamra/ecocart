@@ -499,72 +499,80 @@
           "type": "string",
           "description": "Unique identifier for the order."
         },
-        "userAccountId": {
+        "orderId": {
           "type": "string",
-          "description": "Reference to UserAccount. (Relationship: UserAccount 1:N Order)"
+          "description": "Human-readable order reference number."
         },
-        "orderDate": {
+        "userId": {
           "type": "string",
-          "description": "Date the order was placed.",
-          "format": "date-time"
+          "description": "ID of the user who placed the order, if logged in."
         },
-        "totalAmount": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the order was created."
+        },
+        "total": {
           "type": "number",
-          "description": "Total amount of the order."
+          "description": "The total amount of the order."
         },
-        "shippingAddressId": {
+        "status": {
           "type": "string",
-          "description": "Reference to ShippingAddress. (Relationship: Order 1:1 ShippingAddress)"
+          "description": "The current status of the order.",
+          "enum": [
+            "Processing",
+            "Ready to Delivery",
+            "Delivered",
+            "Cancelled"
+          ]
         },
-        "billingAddressId": {
-          "type": "string",
-          "description": "Reference to BillingAddress. (Relationship: Order 1:1 BillingAddress)"
+        "shippingDetails": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "address": {
+              "type": "string"
+            },
+            "city": {
+              "type": "string"
+            },
+            "zip": {
+              "type": "string"
+            },
+            "country": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "email",
+            "address",
+            "city",
+            "zip",
+            "country"
+          ]
         },
-        "orderItemIds": {
+        "items": {
           "type": "array",
-          "description": "References to OrderItems. (Relationship: Order 1:N OrderItem)",
+          "description": "A denormalized list of items in the order.",
           "items": {
-            "type": "string"
+            "type": "object"
           }
         }
       },
       "required": [
-        "id",
-        "userAccountId",
-        "orderDate",
-        "totalAmount",
-        "shippingAddressId",
-        "billingAddressId"
-      ]
-    },
-    "OrderItem": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "OrderItem",
-      "type": "object",
-      "description": "Represents an item in an order.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the order item."
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to Product. (Relationship: Product 1:N OrderItem)"
-        },
-        "quantity": {
-          "type": "number",
-          "description": "Quantity of the product in the order."
-        },
-        "price": {
-          "type": "number",
-          "description": "Price of the product at the time of the order."
-        }
-      },
-      "required": [
-        "id",
-        "productId",
-        "quantity",
-        "price"
+        "orderId",
+        "createdAt",
+        "total",
+        "status",
+        "shippingDetails",
+        "items"
       ]
     },
     "Brand": {
@@ -1362,50 +1370,6 @@
         }
       },
       {
-        "path": "/users/{userId}/orders/{orderId}",
-        "definition": {
-          "entityName": "Order",
-          "schema": {
-            "$ref": "#/backend/entities/Order"
-          },
-          "description": "Stores order information for each user. Accessible only by the user and administrators.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user account."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier for the order."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/orders/{orderId}/orderItems/{orderItemId}",
-        "definition": {
-          "entityName": "OrderItem",
-          "schema": {
-            "$ref": "#/backend/entities/OrderItem"
-          },
-          "description": "Stores individual order items within an order. Accessible only by the user and administrators.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user account."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier for the order."
-            },
-            {
-              "name": "orderItemId",
-              "description": "The unique identifier for the order item."
-            }
-          ]
-        }
-      },
-      {
         "path": "/users/{userId}/shippingAddresses/{shippingAddressId}",
         "definition": {
           "entityName": "ShippingAddress",
@@ -1441,6 +1405,22 @@
             {
               "name": "billingAddressId",
               "description": "The unique identifier for the billing address."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores all customer orders. Read and write access is restricted to administrators.",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
             }
           ]
         }

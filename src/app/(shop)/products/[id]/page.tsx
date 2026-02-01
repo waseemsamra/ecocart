@@ -262,6 +262,8 @@ export default function ProductDetailPage() {
                   <SheetContent className="w-full sm:max-w-3xl p-0 flex flex-col">
                     <Tabs defaultValue="size-guide" className="flex-1 flex flex-col overflow-hidden">
                         <SheetHeader className="p-6 pb-0 flex-shrink-0">
+                            <SheetTitle className="sr-only">Size Guide</SheetTitle>
+                            <SheetDescription className="sr-only">Use the tabs to switch between the size guide, measuring guide, and how-to-measure instructions.</SheetDescription>
                             <TabsList className="grid w-full grid-cols-3">
                                 <TabsTrigger value="size-guide">SIZE GUIDE</TabsTrigger>
                                 <TabsTrigger value="measuring-guide">MEASURING GUIDE</TabsTrigger>

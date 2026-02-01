@@ -340,7 +340,7 @@ export default function ProductDetailPage() {
                         <SheetFooter className="p-6 bg-secondary text-sm space-y-2 text-left flex-shrink-0">
                             <div className="flex items-center gap-2">
                                 <MessageSquare className="h-5 w-5" />
-                                <p>Whatsapp Us at <span className="font-bold">+91 84880 70070</span> if you are unsure of your size.</p>
+                                <p>Whatsapp Us at <span className="font-bold">+971 52 214 0909</span> if you are unsure of your size.</p>
                             </div>
                             <p className="text-xs text-muted-foreground">
                                 This is a standard size guide for the basic body measurements. Length will vary according to style. There may also be variations in some brands commonly with Indian clothing, so please refer to the product measurements displayed on the product page. Alternatively, you may contact our customer care for specific queries at <a href="mailto:customercare@perniaspopupshop.com" className="underline">customercare@perniaspopupshop.com</a>

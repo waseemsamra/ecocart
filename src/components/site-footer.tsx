@@ -119,7 +119,7 @@ export function SiteFooter() {
             <h4 className="font-semibold mb-4 uppercase">Contact Us</h4>
             <ul className="space-y-2">
               <li className="flex items-center gap-2"><Phone className="h-4 w-4"/> +91 78478 48484</li>
-              <li className="flex items-center gap-2"><MessageSquare className="h-4 w-4"/> Whatsapp us on +91 84880 70070</li>
+              <li className="flex items-center gap-2"><MessageSquare className="h-4 w-4"/> Whatsapp us on +971 52 214 0909</li>
               <li className="flex items-center gap-2"><Mail className="h-4 w-4"/> customercare@clothcard.com</li>
             </ul>
             <h4 className="font-semibold mt-6 mb-4 uppercase">Follow Us</h4>

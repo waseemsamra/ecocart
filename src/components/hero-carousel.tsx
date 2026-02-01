@@ -25,7 +25,7 @@ function HeroSlideCard({ slide }: { slide: HeroSlide }) {
         src={slide.imageUrl}
         alt={slide.title}
         fill
-        className="object-contain w-full h-full"
+        className="object-cover w-full h-full"
         data-ai-hint={slide.imageHint}
         unoptimized
         priority

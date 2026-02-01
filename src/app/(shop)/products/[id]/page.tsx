@@ -159,10 +159,13 @@ export default function ProductDetailPage() {
   return (
     <div className="py-8 md:py-12">
         <div className="px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 lg:gap-12">
+            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
                 
                 {/* Image Gallery */}
-                <div className="lg:col-span-3 flex flex-row-reverse gap-4">
+                <div 
+                  className="lg:w-[30%] flex flex-row-reverse gap-4 p-1"
+                  style={{resize: 'horizontal', overflow: 'auto', border: '2px dashed #007bff', minWidth: '250px', maxWidth: '80%'}}
+                >
                     <div className="flex-1 aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
                         {images.length > 0 && images[selectedImage]?.imageUrl ? (
                             <Image
@@ -187,7 +190,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Product Details */}
-                <div className="lg:col-span-7">
+                <div className="flex-1">
                     {brand && <h2 className="text-2xl font-bold tracking-widest uppercase">{brand.name}</h2>}
                     <div className="flex justify-between items-start">
                         <h1 className="text-lg text-muted-foreground mt-1">{product.name}</h1>

@@ -141,6 +141,9 @@ export default function ProductDetailPage() {
   if (!product) {
     return notFound();
   }
+  
+  const disclaimerText = product.disclaimer || "If you find the product for less we'll match it! (T&C Applied)";
+  const disclaimerParts = disclaimerText.split('(T&C Applied)');
 
   return (
     <div className="py-8 md:py-12">
@@ -219,6 +222,31 @@ export default function ProductDetailPage() {
 
                     <div className="mt-8 space-y-6 text-sm">
                         <Separator />
+                        <div>
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="font-semibold uppercase tracking-wider">GET IN TOUCH</h3>
+                                    <p className="text-muted-foreground">{product.shippingInfo || 'Want the best deal, custom fit, or early delivery?'}</p>
+                                </div>
+                                <Button variant="link" className="text-red-500 font-semibold">CHAT WITH US</Button>
+                            </div>
+                        </div>
+                        <Separator />
+                        <div>
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="font-semibold uppercase tracking-wider">PRICE MATCH PROMISE</h3>
+                                    <p className="text-muted-foreground">
+                                        {disclaimerParts[0]}
+                                        {disclaimerParts.length > 1 && <span className="text-red-500">(T&C Applied)</span>}
+                                        {disclaimerParts[1]}
+                                    </p>
+                                </div>
+                                <Button variant="link" className="text-red-500 font-semibold">KNOW MORE</Button>
+                            </div>
+                        </div>
+                        <Separator />
+
                         <div>
                             <h3 className="font-semibold uppercase tracking-wider mb-2">Product Description</h3>
                             <p className="text-muted-foreground">{product.description}</p>

@@ -75,7 +75,7 @@ export default function AdminLoginPage() {
 
       if (error.code === 'auth/invalid-credential') {
         description =
-          'Invalid credentials. Please check your email and password. If this is your first time, you must sign up for a new account to become the administrator.';
+          'Invalid credentials. Please check your email and password. To create the first admin account, please use the "Sign up" link below.';
       } else if (error.message && (error.message.includes('identity-toolkit') || error.code === 'auth/operation-not-allowed')) {
           title = 'Action Required: Enable Authentication API';
           const projectNumberMatch = error.message.match(/project-(\d+)/);

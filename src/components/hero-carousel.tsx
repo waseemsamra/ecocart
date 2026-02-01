@@ -19,7 +19,7 @@ import Autoplay from "embla-carousel-autoplay"
 
 function HeroSlideCard({ slide }: { slide: HeroSlide }) {
   return (
-    <div className="relative group text-white h-[calc(100vh-120px)]">
+    <div className="relative group text-white h-[80vh]">
        <Link href={slide.shopNowUrl || '#'} className="absolute inset-0 z-10" aria-label={`Shop ${slide.title}`}></Link>
       <Image
         src={slide.imageUrl}
@@ -67,7 +67,7 @@ export function HeroCarousel() {
 
   if (isLoading) {
     return (
-      <section className="bg-muted flex items-center justify-center h-[calc(100vh-120px)]">
+      <section className="bg-muted flex items-center justify-center h-[80vh]">
         <Loader2 className="h-8 w-8 animate-spin" />
       </section>
     );
@@ -75,7 +75,7 @@ export function HeroCarousel() {
 
   if (!slides || slides.length === 0) {
     return (
-      <section className="bg-muted flex flex-col items-center justify-center text-center p-4 h-[calc(100vh-120px)]">
+      <section className="bg-muted flex flex-col items-center justify-center text-center p-4 h-[80vh]">
         <h3 className="font-headline text-2xl font-bold">No Hero Content Found</h3>
         <p className="text-muted-foreground mt-2">
           Add slides in the admin panel at Content {'>'} Hero Slides to see them here.

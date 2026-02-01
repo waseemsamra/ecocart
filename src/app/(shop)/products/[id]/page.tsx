@@ -161,7 +161,7 @@ export default function ProductDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
                 
                 {/* Image Gallery */}
-                <div className="lg:col-span-7 flex flex-row-reverse gap-4">
+                <div className="lg:col-span-5 flex flex-row-reverse gap-4">
                     <div className="flex-1 aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
                         {images.length > 0 && images[selectedImage]?.imageUrl ? (
                             <Image
@@ -186,7 +186,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Product Details */}
-                <div className="lg:col-span-5">
+                <div className="lg:col-span-7">
                     {brand && <h2 className="text-2xl font-bold tracking-widest uppercase">{brand.name}</h2>}
                     <div className="flex justify-between items-start">
                         <h1 className="text-lg text-muted-foreground mt-1">{product.name}</h1>
@@ -230,37 +230,33 @@ export default function ProductDetailPage() {
                         </Button>
                     </div>
 
-                    <div className="mt-8 space-y-6 text-sm">
-                        <Separator />
-                        <ProductCallouts />
-                        <Separator />
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4">
-                            <div className="md:col-span-2">
-                                <h3 className="font-semibold uppercase tracking-wider mb-2">Product Description</h3>
-                                <p className="text-muted-foreground">{product.description}</p>
-                            </div>
-                            <div>
-                                {product.productCode && (
-                                    <div>
-                                        <h3 className="font-semibold uppercase tracking-wider mb-2">Product Code</h3>
-                                        <p className="text-muted-foreground">{product.productCode}</p>
-                                        <Button asChild variant="link" className="text-red-500 font-semibold p-0 h-auto mt-1 text-sm">
-                                          <Link href="#">View Supplier Information</Link>
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
+                    <ProductCallouts />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4">
+                        <div className="md:col-span-2">
+                            <h3 className="font-semibold uppercase tracking-wider mb-2">Product Description</h3>
+                            <p className="text-muted-foreground">{product.description}</p>
                         </div>
-
-                        <Separator />
-
-                        <div className="grid grid-cols-2 gap-y-4 gap-x-8 pt-4">
-                             {product.fit && <div><h3 className="font-semibold uppercase tracking-wider">Fit</h3><p className="text-muted-foreground">{product.fit}</p></div>}
-                            {product.composition && <div><h3 className="font-semibold uppercase tracking-wider">Composition</h3><p className="text-muted-foreground">{product.composition}</p></div>}
-                            {product.care && <div><h3 className="font-semibold uppercase tracking-wider">Care</h3><p className="text-muted-foreground">{product.care}</p></div>}
-                            {product.materials && product.materials.length > 0 && <div><h3 className="font-semibold uppercase tracking-wider">Components</h3><p className="text-muted-foreground">{product.materials.join(', ')}</p></div>}
+                        <div>
+                            {product.productCode && (
+                                <div>
+                                    <h3 className="font-semibold uppercase tracking-wider mb-2">Product Code</h3>
+                                    <p className="text-muted-foreground">{product.productCode}</p>
+                                    <Button asChild variant="link" className="text-red-500 font-semibold p-0 h-auto mt-1 text-sm">
+                                      <Link href="#">View Supplier Information</Link>
+                                    </Button>
+                                </div>
+                            )}
                         </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="grid grid-cols-2 gap-y-4 gap-x-8 pt-4">
+                         {product.fit && <div><h3 className="font-semibold uppercase tracking-wider">Fit</h3><p className="text-muted-foreground">{product.fit}</p></div>}
+                        {product.composition && <div><h3 className="font-semibold uppercase tracking-wider">Composition</h3><p className="text-muted-foreground">{product.composition}</p></div>}
+                        {product.care && <div><h3 className="font-semibold uppercase tracking-wider">Care</h3><p className="text-muted-foreground">{product.care}</p></div>}
+                        {product.materials && product.materials.length > 0 && <div><h3 className="font-semibold uppercase tracking-wider">Components</h3><p className="text-muted-foreground">{product.materials.join(', ')}</p></div>}
                     </div>
                 </div>
             </div>

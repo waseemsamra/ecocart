@@ -19,13 +19,13 @@ import Autoplay from "embla-carousel-autoplay"
 
 function HeroSlideCard({ slide }: { slide: HeroSlide }) {
   return (
-    <div className="relative group text-white aspect-video">
+    <div className="relative group text-white aspect-video bg-muted">
        <Link href={slide.shopNowUrl || '#'} className="absolute inset-0 z-10" aria-label={`Shop ${slide.title}`}></Link>
       <Image
         src={slide.imageUrl}
         alt={slide.title}
         fill
-        className="object-cover w-full h-full"
+        className="object-contain w-full h-full"
         data-ai-hint={slide.imageHint}
         unoptimized
         priority

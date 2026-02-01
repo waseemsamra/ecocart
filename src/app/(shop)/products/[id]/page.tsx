@@ -198,9 +198,9 @@ export default function ProductDetailPage() {
                                 </SheetContent>
                             </Sheet>
                         </div>
-                        <RadioGroup defaultValue="m" className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                        <RadioGroup defaultValue="m" className="flex flex-wrap gap-2">
                             {defaultSizes.map(size => (
-                                <Label key={size.id} htmlFor={size.id} className={`relative flex items-center justify-center rounded-md border p-3 cursor-pointer hover:bg-muted has-[:checked]:border-primary`}>
+                                <Label key={size.id} htmlFor={size.id} className={`relative flex items-center justify-center rounded-md border p-3 cursor-pointer hover:bg-muted has-[:checked]:border-primary w-14 h-12`}>
                                     <RadioGroupItem value={size.id} id={size.id} className="sr-only"/>
                                     <span className="font-semibold">{size.shortName}</span>
                                 </Label>

@@ -13,9 +13,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Loader2, UploadCloud } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import Image from 'next/image';
+
+const s3BaseUrl = 'https://ecocloths.s3.us-west-2.amazonaws.com';
 
 const storeSettingsSchema = z.object({
   storeName: z.string().min(1, 'Store name is required'),
@@ -23,6 +26,7 @@ const storeSettingsSchema = z.object({
   contactPhone: z.string().optional(),
   address: z.string().optional(),
   companyDetails: z.string().optional(),
+  logoUrl: z.string().optional(),
   measuringGuideImageUrl: z.string().optional(),
 });
 
@@ -33,9 +37,7 @@ export default function StoreDetailsPage() {
   const db = useFirestore();
   const [loading, setLoading] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [guideImageFile, setGuideImageFile] = useState<File | null>(null);
-  const [guideImagePreview, setGuideImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { loading: authLoading } = useAuth();
 
@@ -55,9 +57,13 @@ export default function StoreDetailsPage() {
       contactPhone: '',
       address: '',
       companyDetails: '',
+      logoUrl: '',
       measuringGuideImageUrl: '',
     },
   });
+  
+  const logoUrlValue = form.watch('logoUrl');
+  const guideImageUrlValue = form.watch('measuringGuideImageUrl');
 
   useEffect(() => {
     if (storeSettings) {
@@ -67,25 +73,30 @@ export default function StoreDetailsPage() {
         contactPhone: storeSettings.contactPhone || '',
         address: storeSettings.address || '',
         companyDetails: storeSettings.companyDetails || '',
-        measuringGuideImageUrl: storeSettings.measuringGuideImageUrl || '',
+        logoUrl: storeSettings.logoUrl?.startsWith('http') ? storeSettings.logoUrl : storeSettings.logoUrl?.replace(s3BaseUrl, ''),
+        measuringGuideImageUrl: storeSettings.measuringGuideImageUrl?.startsWith('http') ? storeSettings.measuringGuideImageUrl : storeSettings.measuringGuideImageUrl?.replace(s3BaseUrl, ''),
       });
-      if(storeSettings.logoUrl) {
-          setLogoPreview(storeSettings.logoUrl);
-      }
-      if(storeSettings.measuringGuideImageUrl) {
-        setGuideImagePreview(storeSettings.measuringGuideImageUrl);
-      }
     }
   }, [storeSettings, form]);
+  
+  const logoPreview = useMemo(() => {
+    if (logoFile) return URL.createObjectURL(logoFile);
+    if (logoUrlValue) return logoUrlValue.startsWith('http') ? logoUrlValue : `${s3BaseUrl}${logoUrlValue}`;
+    return null;
+  }, [logoFile, logoUrlValue]);
+
+  const guideImagePreview = useMemo(() => {
+    if (guideImageFile) return URL.createObjectURL(guideImageFile);
+    if (guideImageUrlValue) return guideImageUrlValue.startsWith('http') ? guideImageUrlValue : `${s3BaseUrl}${guideImageUrlValue}`;
+    return null;
+  }, [guideImageFile, guideImageUrlValue]);
 
   const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setLogoFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result as string);
-      };
+      reader.onloadend = () => form.setValue('logoUrl', reader.result as string, { shouldDirty: true });
       reader.readAsDataURL(file);
     }
   };
@@ -95,9 +106,7 @@ export default function StoreDetailsPage() {
     if (file) {
       setGuideImageFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setGuideImagePreview(reader.result as string);
-      };
+      reader.onloadend = () => form.setValue('measuringGuideImageUrl', reader.result as string, { shouldDirty: true });
       reader.readAsDataURL(file);
     }
   };
@@ -110,42 +119,38 @@ export default function StoreDetailsPage() {
         return;
     }
     try {
-      let logoUrl = storeSettings?.logoUrl || '';
-      let measuringGuideImageUrl = storeSettings?.measuringGuideImageUrl || '';
+      let logoUrlToSave = data.logoUrl || '';
+      let guideImageUrlToSave = data.measuringGuideImageUrl || '';
+      
+      setIsUploading(true);
 
-      if (logoFile || guideImageFile) {
-        setIsUploading(true);
-        const uploadPromises = [];
-
-        if (logoFile) {
-          const logoFormData = new FormData();
-          logoFormData.append("file", logoFile);
-          uploadPromises.push(
-            fetch('/api/image', { method: 'POST', body: logoFormData })
-              .then(res => res.json())
-              .then(result => { logoUrl = result.url; })
-          );
-        }
-
-        if (guideImageFile) {
-          const guideFormData = new FormData();
-          guideFormData.append("file", guideImageFile);
-          uploadPromises.push(
-            fetch('/api/image', { method: 'POST', body: guideFormData })
-              .then(res => res.json())
-              .then(result => { measuringGuideImageUrl = result.url; })
-          );
-        }
-        
-        await Promise.all(uploadPromises);
-        setIsUploading(false);
+      if (logoFile) {
+        const logoFormData = new FormData();
+        logoFormData.append("file", logoFile);
+        const response = await fetch('/api/image', { method: 'POST', body: logoFormData });
+        if (!response.ok) throw new Error(`Logo upload failed: ${response.statusText}`);
+        logoUrlToSave = (await response.json()).url;
+      } else if (logoUrlToSave && !logoUrlToSave.startsWith('http') && !logoUrlToSave.startsWith('data:')) {
+        logoUrlToSave = `${s3BaseUrl}${logoUrlToSave}`;
       }
+
+      if (guideImageFile) {
+        const guideFormData = new FormData();
+        guideFormData.append("file", guideImageFile);
+        const response = await fetch('/api/image', { method: 'POST', body: guideFormData });
+        if (!response.ok) throw new Error(`Guide image upload failed: ${response.statusText}`);
+        guideImageUrlToSave = (await response.json()).url;
+      } else if (guideImageUrlToSave && !guideImageUrlToSave.startsWith('http') && !guideImageUrlToSave.startsWith('data:')) {
+         guideImageUrlToSave = `${s3BaseUrl}${guideImageUrlToSave}`;
+      }
+      
+      setIsUploading(false);
       
       await setDoc(doc(db, 'settings', 'storeDetails'), {
         ...data,
         id: 'storeDetails',
-        logoUrl,
-        measuringGuideImageUrl,
+        logoUrl: logoUrlToSave.startsWith('data:') ? storeSettings?.logoUrl || '' : logoUrlToSave,
+        measuringGuideImageUrl: guideImageUrlToSave.startsWith('data:') ? storeSettings?.measuringGuideImageUrl || '' : guideImageUrlToSave,
         updatedAt: new Date(),
       }, { merge: true });
 
@@ -251,48 +256,88 @@ export default function StoreDetailsPage() {
               <CardDescription>Upload your company logo and other brand assets.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <FormItem>
-                <FormLabel>Store Logo</FormLabel>
-                <div className="mt-2 flex items-center gap-6">
-                    {logoPreview ? (
-                        <img src={logoPreview} alt="Logo preview" width={80} height={80} className="rounded-lg object-contain h-20 w-20 bg-muted border p-1" />
-                    ) : (
-                        <div className="h-20 w-20 flex items-center justify-center rounded-lg bg-muted text-muted-foreground border">
-                            <UploadCloud className="h-8 w-8" />
-                        </div>
-                    )}
-                    <div className='flex flex-col gap-2'>
-                        <Input id="logo-upload" type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
-                        <Button type="button" variant="outline" onClick={() => document.getElementById('logo-upload')?.click()} disabled={isUploading}>
-                            {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {logoFile ? 'Change Logo' : 'Upload Logo'}
-                        </Button>
-                        <p className="text-xs text-muted-foreground">PNG, JPG, GIF, WebP up to 5MB.</p>
+               <FormField
+                control={form.control}
+                name="logoUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Store Logo</FormLabel>
+                     <div className="mt-2 flex items-center gap-6">
+                      {logoPreview ? (
+                          <Image src={logoPreview} alt="Logo preview" width={80} height={80} className="rounded-lg object-contain h-20 w-20 bg-muted border p-1" unoptimized/>
+                      ) : (
+                          <div className="h-20 w-20 flex items-center justify-center rounded-lg bg-muted text-muted-foreground border">
+                              <UploadCloud className="h-8 w-8" />
+                          </div>
+                      )}
+                      <div className="flex-1 space-y-2">
+                        <FormControl>
+                          <div className="flex gap-2">
+                            <Input
+                              {...field}
+                              value={field.value?.startsWith('data:') ? '' : field.value}
+                              placeholder="e.g. /logos/my-logo.png"
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setLogoFile(null);
+                              }}
+                            />
+                            <Button type="button" variant="outline" asChild>
+                              <label htmlFor="logo-upload" className="cursor-pointer flex items-center justify-center p-2">
+                                <UploadCloud className="h-4 w-4" />
+                                <input id="logo-upload" type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
+                              </label>
+                            </Button>
+                          </div>
+                        </FormControl>
+                        <FormDescription>Upload a logo or provide a full URL/S3 path.</FormDescription>
+                      </div>
                     </div>
-                </div>
-                 <FormMessage />
-              </FormItem>
-               <FormItem>
-                <FormLabel>Measuring Guide Image</FormLabel>
-                <div className="mt-2 flex items-center gap-6">
-                    {guideImagePreview ? (
-                        <img src={guideImagePreview} alt="Measuring Guide preview" width={80} height={80} className="rounded-lg object-contain h-20 w-20 bg-muted border p-1" />
-                    ) : (
-                        <div className="h-20 w-20 flex items-center justify-center rounded-lg bg-muted text-muted-foreground border">
-                            <UploadCloud className="h-8 w-8" />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                  control={form.control}
+                  name="measuringGuideImageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Measuring Guide Image</FormLabel>
+                       <div className="mt-2 flex items-center gap-6">
+                        {guideImagePreview ? (
+                            <Image src={guideImagePreview} alt="Measuring Guide preview" width={80} height={80} className="rounded-lg object-contain h-20 w-20 bg-muted border p-1" unoptimized/>
+                        ) : (
+                            <div className="h-20 w-20 flex items-center justify-center rounded-lg bg-muted text-muted-foreground border">
+                                <UploadCloud className="h-8 w-8" />
+                            </div>
+                        )}
+                        <div className="flex-1 space-y-2">
+                            <FormControl>
+                              <div className="flex gap-2">
+                                  <Input 
+                                      {...field}
+                                      value={field.value?.startsWith('data:') ? '' : field.value}
+                                      placeholder="e.g. /guides/measure.jpg or https://..."
+                                      onChange={(e) => {
+                                          field.onChange(e);
+                                          setGuideImageFile(null);
+                                      }}
+                                  />
+                                  <Button type="button" variant="outline" asChild>
+                                      <label htmlFor="guide-image-upload" className="cursor-pointer flex items-center justify-center p-2">
+                                          <UploadCloud className="h-4 w-4" />
+                                          <input id="guide-image-upload" type="file" accept="image/*" onChange={handleGuideImageChange} className="hidden" />
+                                      </label>
+                                  </Button>
+                              </div>
+                            </FormControl>
+                            <FormDescription>Upload an image or provide a full URL/S3 path.</FormDescription>
                         </div>
-                    )}
-                    <div className='flex flex-col gap-2'>
-                        <Input id="guide-image-upload" type="file" accept="image/*" onChange={handleGuideImageChange} className="hidden" />
-                        <Button type="button" variant="outline" onClick={() => document.getElementById('guide-image-upload')?.click()} disabled={isUploading}>
-                            {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {guideImageFile ? 'Change Image' : 'Upload Image'}
-                        </Button>
-                        <p className="text-xs text-muted-foreground">Image for the size guide pop-up.</p>
-                    </div>
-                </div>
-                 <FormMessage />
-              </FormItem>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
             </CardContent>
           </Card>
           
@@ -319,7 +364,7 @@ export default function StoreDetailsPage() {
           </Card>
 
           <Button type="submit" disabled={loading || isUploading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {(loading || isUploading) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Save Changes
           </Button>
         </form>

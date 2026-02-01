@@ -31,18 +31,13 @@ import { Separator } from './ui/separator';
 import { BrandsDialog } from './brands-dialog';
 
 function CartButton() {
-  const { cartCount } = useCart();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const { cartCount, isCartLoading } = useCart();
 
   return (
     <Button asChild variant="ghost" size="icon" className="relative">
       <Link href="/cart">
         <ShoppingBag className="h-6 w-6" />
-        {isClient && cartCount > 0 && (
+        {!isCartLoading && cartCount > 0 && (
           <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-accent-foreground text-xs font-bold">
             {cartCount}
           </span>
@@ -214,6 +209,7 @@ export function SiteHeader() {
                           {link.label}
                         </Link>
                       ))}
+                       <BrandsDialog />
                     </nav>
                 </div>
               </SheetContent>

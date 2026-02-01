@@ -8,10 +8,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Minus, Plus, Trash2, ShoppingCart } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingCart, Loader2 } from 'lucide-react';
 
 export default function CartPage() {
-  const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount, isCartLoading } = useCart();
+
+  if (isCartLoading) {
+    return (
+      <div className="container py-12 flex justify-center items-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (cartCount === 0) {
     return (

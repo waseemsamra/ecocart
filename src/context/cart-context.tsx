@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { CartItem, Product } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,13 +12,39 @@ interface CartContextType {
   clearCart: () => void;
   cartCount: number;
   cartTotal: number;
+  isCartLoading: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isCartLoading, setIsCartLoading] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    try {
+      const storedCart = localStorage.getItem('clothcard-cart');
+      if (storedCart) {
+        setCartItems(JSON.parse(storedCart));
+      }
+    } catch (error) {
+      console.error("Failed to load cart from localStorage", error);
+      localStorage.removeItem('clothcard-cart');
+    } finally {
+      setIsCartLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isCartLoading) {
+        try {
+          localStorage.setItem('clothcard-cart', JSON.stringify(cartItems));
+        } catch (error) {
+          console.error("Failed to save cart to localStorage", error);
+        }
+    }
+  }, [cartItems, isCartLoading]);
 
   const addToCart = (product: Product, quantity = 1) => {
     setCartItems(prevItems => {
@@ -74,7 +100,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       updateQuantity,
       clearCart,
       cartCount,
-      cartTotal
+      cartTotal,
+      isCartLoading
     }}>
       {children}
     </CartContext.Provider>

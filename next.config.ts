@@ -42,6 +42,12 @@ const nextConfig: NextConfig = {
         hostname: 'clothcard-6aa62.firebasestorage.app',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.imgur.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

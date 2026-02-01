@@ -20,6 +20,7 @@ import {
   SheetTitle,
   SheetDescription,
   SheetTrigger,
+  SheetFooter,
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/context/cart-context';

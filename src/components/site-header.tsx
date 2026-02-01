@@ -127,7 +127,7 @@ export function SiteHeader() {
   }, []);
 
   const navLinks = [
-    { href: '#', label: 'Industries', active: true },
+    { href: '/brands', label: 'Brands' },
     { href: '/products', label: 'All Products' },
   ];
 
@@ -209,9 +209,7 @@ export function SiteHeader() {
                           key={link.label}
                           href={link.href}
                           onClick={() => setMobileMenuOpen(false)}
-                          className={`transition-colors hover:text-primary ${
-                            link.active ? 'text-accent' : 'text-foreground'
-                          }`}
+                          className="text-foreground transition-colors hover:text-primary"
                         >
                           {link.label}
                         </Link>
@@ -245,9 +243,7 @@ export function SiteHeader() {
               <Link
                 key={link.label}
                 href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  link.active ? 'text-accent' : 'text-foreground'
-                }`}
+                className="text-sm font-medium transition-colors hover:text-primary text-foreground"
               >
                 {link.label}
               </Link>

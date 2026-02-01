@@ -19,7 +19,7 @@ import Autoplay from "embla-carousel-autoplay"
 
 function HeroSlideCard({ slide }: { slide: HeroSlide }) {
   return (
-    <div className="relative group text-white h-[70vh] md:h-[calc(100vh-120px)]">
+    <div className="relative group text-white h-[calc(100vh-120px)]">
        <Link href={slide.shopNowUrl || '#'} className="absolute inset-0 z-10" aria-label={`Shop ${slide.title}`}></Link>
       <Image
         src={slide.imageUrl}
@@ -31,7 +31,7 @@ function HeroSlideCard({ slide }: { slide: HeroSlide }) {
         priority
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 z-20 px-8 pb-8 md:px-12 md:pb-12">
+      <div className="absolute bottom-0 left-0 right-0 z-20 pb-8 px-8 md:px-12">
         <h2 className="font-headline text-4xl md:text-5xl font-bold">{slide.title}</h2>
         {slide.subLinks && slide.subLinks.length > 0 && (
           <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-4 text-sm">

@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { CreditCard, Truck } from 'lucide-react';
 
 const checkoutSchema = z.object({
   email: z.string().email(),
@@ -18,11 +20,44 @@ const checkoutSchema = z.object({
   city: z.string().min(2),
   zip: z.string().min(4),
   country: z.string().min(2),
-  cardName: z.string().min(2),
-  cardNumber: z.string().regex(/^\d{4} \d{4} \d{4} \d{4}$/, 'Invalid card number'),
-  expiryDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, 'Invalid format MM/YY'),
-  cvc: z.string().regex(/^\d{3,4}$/, 'Invalid CVC'),
+  paymentMethod: z.enum(['credit-card', 'cod']),
+  cardName: z.string().optional(),
+  cardNumber: z.string().optional(),
+  expiryDate: z.string().optional(),
+  cvc: z.string().optional(),
+}).superRefine((data, ctx) => {
+    if (data.paymentMethod === 'credit-card') {
+        if (!data.cardName || data.cardName.length < 2) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['cardName'],
+                message: "Name on card is required",
+            });
+        }
+        if (!data.cardNumber || !/^\d{4} \d{4} \d{4} \d{4}$/.test(data.cardNumber)) {
+             ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['cardNumber'],
+                message: "Invalid card number format",
+            });
+        }
+        if (!data.expiryDate || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(data.expiryDate)) {
+             ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['expiryDate'],
+                message: "Invalid format MM/YY",
+            });
+        }
+        if (!data.cvc || !/^\d{3,4}$/.test(data.cvc)) {
+             ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['cvc'],
+                message: "Invalid CVC",
+            });
+        }
+    }
 });
+
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
@@ -35,9 +70,12 @@ export default function CheckoutPage() {
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       email: '', name: '', address: '', city: '', zip: '', country: '',
+      paymentMethod: 'credit-card',
       cardName: '', cardNumber: '', expiryDate: '', cvc: '',
     },
   });
+
+  const paymentMethod = form.watch('paymentMethod');
 
   const onSubmit = (data: CheckoutFormValues) => {
     console.log('Order placed:', data);
@@ -83,25 +121,79 @@ export default function CheckoutPage() {
                 )} />
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader><CardTitle className="font-headline">Payment Details</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <FormField control={form.control} name="cardName" render={({ field }) => (
-                  <FormItem><FormLabel>Name on Card</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <FormField control={form.control} name="cardNumber" render={({ field }) => (
-                  <FormItem><FormLabel>Card Number</FormLabel><FormControl><Input placeholder="xxxx xxxx xxxx xxxx" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField control={form.control} name="expiryDate" render={({ field }) => (
-                    <FormItem><FormLabel>Expiry (MM/YY)</FormLabel><FormControl><Input placeholder="MM/YY" {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="cvc" render={({ field }) => (
-                    <FormItem><FormLabel>CVC</FormLabel><FormControl><Input placeholder="123" {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                </div>
-              </CardContent>
+
+             <Card>
+                <CardHeader><CardTitle className="font-headline">Payment Method</CardTitle></CardHeader>
+                <CardContent>
+                    <FormField
+                    control={form.control}
+                    name="paymentMethod"
+                    render={({ field }) => (
+                        <FormItem className="space-y-3">
+                        <FormControl>
+                            <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                            >
+                            <FormItem>
+                                <FormControl>
+                                <RadioGroupItem value="credit-card" id="credit-card" className="sr-only" />
+                                </FormControl>
+                                <Label htmlFor="credit-card" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    <CreditCard className="mb-3 h-6 w-6" />
+                                    Credit Card
+                                </Label>
+                            </FormItem>
+                             <FormItem>
+                                <FormControl>
+                                <RadioGroupItem value="cod" id="cod" className="sr-only" />
+                                </FormControl>
+                                <Label htmlFor="cod" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    <Truck className="mb-3 h-6 w-6" />
+                                    Payment on Delivery
+                                </Label>
+                            </FormItem>
+                            </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </CardContent>
             </Card>
+            
+            {paymentMethod === 'credit-card' && (
+              <Card>
+                <CardHeader><CardTitle className="font-headline">Payment Details</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField control={form.control} name="cardName" render={({ field }) => (
+                    <FormItem><FormLabel>Name on Card</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="cardNumber" render={({ field }) => (
+                    <FormItem><FormLabel>Card Number</FormLabel><FormControl><Input placeholder="xxxx xxxx xxxx xxxx" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="expiryDate" render={({ field }) => (
+                      <FormItem><FormLabel>Expiry (MM/YY)</FormLabel><FormControl><Input placeholder="MM/YY" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="cvc" render={({ field }) => (
+                      <FormItem><FormLabel>CVC</FormLabel><FormControl><Input placeholder="123" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {paymentMethod === 'cod' && (
+                <Card>
+                    <CardHeader><CardTitle className="font-headline">Payment on Delivery</CardTitle></CardHeader>
+                    <CardContent>
+                        <p className="text-sm text-muted-foreground">You will pay for your order in cash when it is delivered to your address. Please have the exact amount ready.</p>
+                    </CardContent>
+                </Card>
+            )}
+
           </div>
           <div>
             <Card>

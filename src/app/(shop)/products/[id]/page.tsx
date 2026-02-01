@@ -159,17 +159,11 @@ export default function ProductDetailPage() {
   return (
     <div className="py-8 md:py-12">
         <div className="px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:flex gap-8 lg:gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-12">
                 
                 {/* Image Gallery */}
                 <div
-                  className="lg:w-1/3"
-                  style={{
-                    resize: 'both',
-                    overflow: 'auto',
-                    border: '2px dashed blue',
-                    padding: '1rem',
-                  }}
+                  className="lg:col-span-1"
                 >
                     <div 
                       className="flex flex-row-reverse gap-4"
@@ -199,7 +193,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Product Details */}
-                <div className="flex-1">
+                <div className="lg:col-span-3">
                     {brand && <h2 className="text-2xl font-bold tracking-widest uppercase">{brand.name}</h2>}
                     <div className="flex justify-between items-start">
                         <h1 className="text-lg text-muted-foreground mt-1">{product.name}</h1>

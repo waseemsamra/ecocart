@@ -164,7 +164,7 @@ export default function ProductDetailPage() {
                 {/* Image Gallery */}
                 <div 
                   className="lg:w-[30%] flex flex-row-reverse gap-4 p-1"
-                  style={{resize: 'horizontal', overflow: 'auto', border: '2px dashed #007bff', minWidth: '250px', maxWidth: '80%'}}
+                  style={{resize: 'both', overflow: 'auto', border: '2px dashed #007bff', minWidth: '250px', maxWidth: '80%'}}
                 >
                     <div className="flex-1 aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
                         {images.length > 0 && images[selectedImage]?.imageUrl ? (

@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { useMemo } from 'react';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';

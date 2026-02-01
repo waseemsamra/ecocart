@@ -96,14 +96,21 @@ export default function DataUploadPage() {
       const uniqueBrandNames = [...new Set(parsedData.map(p => p.brand.trim()).filter(Boolean))];
       setLogs(prev => [...prev, `Found ${uniqueBrandNames.length} unique brands.`]);
       
-      // Step 2: Check which brands already exist
+      // Step 2: Check which brands already exist, handling Firestore's 30-item 'in' query limit.
       const existingBrandsMap = new Map<string, string>();
       if (uniqueBrandNames.length > 0) {
-        const existingBrandsQuery = query(brandsRef, where('name', 'in', uniqueBrandNames));
-        const existingBrandsSnapshot = await getDocs(existingBrandsQuery);
-        existingBrandsSnapshot.docs.forEach(doc => {
-            existingBrandsMap.set(doc.data().name, doc.id);
-        });
+        const chunks = [];
+        for (let i = 0; i < uniqueBrandNames.length; i += 30) {
+            chunks.push(uniqueBrandNames.slice(i, i + 30));
+        }
+
+        for (const chunk of chunks) {
+            const existingBrandsQuery = query(brandsRef, where('name', 'in', chunk));
+            const existingBrandsSnapshot = await getDocs(existingBrandsQuery);
+            existingBrandsSnapshot.docs.forEach(doc => {
+                existingBrandsMap.set(doc.data().name, doc.id);
+            });
+        }
       }
       setLogs(prev => [...prev, `Found ${existingBrandsMap.size} existing brands in the database.`]);
       
@@ -158,6 +165,15 @@ export default function DataUploadPage() {
           materials: [],
           certifications: [],
           sustainabilityImpact: '',
+          categoryIds: [],
+          sizeIds: [],
+          colourIds: [],
+          materialTypeIds: [],
+          finishTypeIds: [],
+          adhesiveIds: [],
+          handleIds: [],
+          shapeIds: [],
+          lidIds: [],
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });

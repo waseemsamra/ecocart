@@ -60,30 +60,33 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     if (!db || !productIdOrSlug) {
+      setIsLoading(true);
       return;
     }
 
     const fetchProduct = async () => {
       setIsLoading(true);
       setError(null);
+      let productData: Product | null = null;
       try {
-        // Try fetching by ID first, as it's the primary identifier
-        let productSnap = await getDoc(doc(db, 'products', productIdOrSlug));
+        // Try fetching by ID first
+        const docRef = doc(db, 'products', productIdOrSlug);
+        const docSnap = await getDoc(docRef);
 
-        // If not found by ID, try querying by slug as a fallback
-        if (!productSnap.exists()) {
+        if (docSnap.exists()) {
+          productData = { id: docSnap.id, ...docSnap.data() } as Product;
+        } else {
+          // Fallback to querying by slug
           const q = query(collection(db, 'products'), where('slug', '==', productIdOrSlug), limit(1));
           const querySnapshot = await getDocs(q);
           if (!querySnapshot.empty) {
-            productSnap = querySnapshot.docs[0];
+            const productSnap = querySnapshot.docs[0];
+            productData = { id: productSnap.id, ...productSnap.data() } as Product;
           }
         }
         
-        if (productSnap && productSnap.exists()) {
-          setProduct({ id: productSnap.id, ...productSnap.data() } as Product);
-        } else {
-          setProduct(null);
-        }
+        setProduct(productData);
+
       } catch (e: any) {
         setError(e);
         console.error("Error fetching product:", e);
@@ -94,6 +97,7 @@ export default function ProductDetailPage() {
 
     fetchProduct();
   }, [db, productIdOrSlug]);
+
 
   const images = useMemo(() => product?.images || [], [product]);
 
@@ -120,25 +124,27 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 md:py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
+    <div className="py-8 md:py-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 px-4 sm:px-6 lg:px-8">
         
         {/* Image Gallery */}
-        <div className="lg:col-span-3 flex flex-col-reverse md:flex-row gap-4">
+        <div className="lg:col-span-7 flex flex-col-reverse md:flex-row gap-4">
             <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto pr-2 pb-2 md:pb-0">
                 {images.map((image, index) => (
-                    <button key={image.id} onClick={() => setSelectedImage(index)} className={`shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}>
-                        <Image src={image.imageUrl} alt={image.description || product.name} width={80} height={80} className="w-full h-full object-cover" />
+                    <button key={image.id || index} onClick={() => setSelectedImage(index)} className={`shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}>
+                        <Image src={image.imageUrl || 'https://placehold.co/80x80'} alt={image.description || product.name} width={80} height={80} className="w-full h-full object-cover" unoptimized />
                     </button>
                 ))}
             </div>
-            <div className="flex-1 aspect-square relative bg-muted rounded-lg overflow-hidden">
-                {images.length > 0 ? (
+            <div className="flex-1 aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
+                {images.length > 0 && images[selectedImage]?.imageUrl ? (
                     <Image
-                        src={images[selectedImage].imageUrl}
+                        src={images[selectedImage].imageUrl!}
                         alt={images[selectedImage].description || product.name}
                         fill
-                        className="object-contain"
+                        className="object-cover"
+                        priority
+                        unoptimized
                     />
                 ) : (
                     <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>
@@ -147,7 +153,7 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Product Details */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-5">
             <h1 className="text-3xl md:text-4xl font-headline font-bold">{product.name}</h1>
             <div className="flex items-center gap-4 mt-2">
                 <p className="text-2xl font-semibold">DH{product.price.toFixed(2)}</p>
@@ -225,7 +231,7 @@ export default function ProductDetailPage() {
             </div>
         </div>
       </div>
-      <div className="mt-16 md:mt-24">
+      <div className="mt-16 md:mt-24 container mx-auto">
         <RelatedProducts />
       </div>
     </div>

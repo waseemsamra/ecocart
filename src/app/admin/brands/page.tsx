@@ -93,7 +93,8 @@ Al Zohaib
 Aqs n Man
 Adam's Couture
 Aleen
-Arif Ashraf`;
+Arif Ashraf
+Khadi`;
 
 export default function BrandsPage() {
     const { toast } = useToast();

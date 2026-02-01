@@ -2,16 +2,14 @@
 
 import { useParams, notFound } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
-import type { Product, Size } from '@/lib/types';
+import type { Product, Size, Brand } from '@/lib/types';
 import { doc, getDoc, collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
-import { Loader2, Check, ShieldCheck, Truck, Info, Star } from 'lucide-react';
+import { Loader2, Heart } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { AddToCartForm } from '@/components/add-to-cart-form';
-import { ProductInfoAccordion } from '@/components/product-info-accordion';
 import { RelatedProducts } from '@/components/related-products';
 import {
   Sheet,
@@ -20,8 +18,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { Separator } from '@/components/ui/separator';
+import { useCart } from '@/context/cart-context';
+import { useRouter } from 'next/navigation';
 
-// Default sizes to use as a fallback if the database is empty or fails to load
 const defaultSizes: Size[] = [
   { id: 'xs', name: 'Extra Small', shortName: 'XS' },
   { id: 's', name: 'Small', shortName: 'S' },
@@ -31,15 +31,12 @@ const defaultSizes: Size[] = [
   { id: '2xl', name: '2XL', shortName: '2XL' },
   { id: '3xl', name: '3XL', shortName: '3XL' },
   { id: '4xl', name: '4XL', shortName: '4XL' },
-  { id: '5xl', name: '5XL', shortName: '5XL' },
-  { id: '6xl', name: '6XL', shortName: '6XL' },
 ];
 
 function SizeGuide() {
     return (
       <div className="space-y-4">
         <p>Use the chart below to determine your size. If you’re on the borderline between two sizes, order the smaller size for a tighter fit or the larger size for a looser fit.</p>
-        {/* Placeholder for an actual size chart table */}
         <div className="border rounded-lg p-4 text-center">
             <p className="font-semibold">Size Chart Coming Soon</p>
             <p className="text-sm text-muted-foreground">Please refer to product description for now.</p>
@@ -51,7 +48,11 @@ function SizeGuide() {
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
   const db = useFirestore();
+  const router = useRouter();
+  const { addToCart } = useCart();
+  
   const [product, setProduct] = useState<Product | null>(null);
+  const [brand, setBrand] = useState<Brand | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -64,19 +65,17 @@ export default function ProductDetailPage() {
       return;
     }
 
-    const fetchProduct = async () => {
+    const fetchProductAndBrand = async () => {
       setIsLoading(true);
       setError(null);
       let productData: Product | null = null;
       try {
-        // Try fetching by ID first
         const docRef = doc(db, 'products', productIdOrSlug);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
           productData = { id: docSnap.id, ...docSnap.data() } as Product;
         } else {
-          // Fallback to querying by slug
           const q = query(collection(db, 'products'), where('slug', '==', productIdOrSlug), limit(1));
           const querySnapshot = await getDocs(q);
           if (!querySnapshot.empty) {
@@ -85,7 +84,15 @@ export default function ProductDetailPage() {
           }
         }
         
-        setProduct(productData);
+        if (productData) {
+           setProduct(productData);
+           if (productData.brandIds?.[0]) {
+                const brandDoc = await getDoc(doc(db, 'brands', productData.brandIds[0]));
+                if (brandDoc.exists()) {
+                    setBrand({ id: brandDoc.id, ...brandDoc.data() } as Brand);
+                }
+           }
+        }
 
       } catch (e: any) {
         setError(e);
@@ -95,11 +102,23 @@ export default function ProductDetailPage() {
       }
     };
 
-    fetchProduct();
+    fetchProductAndBrand();
   }, [db, productIdOrSlug]);
 
-
   const images = useMemo(() => product?.images || [], [product]);
+
+  const handleAddToCart = () => {
+    if (product) {
+      addToCart(product, 1);
+    }
+  };
+
+  const handleBuyNow = () => {
+    if (product) {
+      addToCart(product, 1);
+      router.push('/checkout');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -125,115 +144,101 @@ export default function ProductDetailPage() {
 
   return (
     <div className="py-8 md:py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 lg:gap-12 px-4 sm:px-6 lg:px-8">
-        
-        {/* Image Gallery */}
-        <div className="lg:col-span-4 flex flex-col-reverse md:flex-row gap-4">
-            <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto pr-2 pb-2 md:pb-0">
-                {images.map((image, index) => (
-                    <button key={image.id || index} onClick={() => setSelectedImage(index)} className={`shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}>
-                        <Image src={image.imageUrl || 'https://placehold.co/80x80'} alt={image.description || product.name} width={80} height={80} className="w-full h-full object-cover" unoptimized />
-                    </button>
-                ))}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+                
+                {/* Image Gallery */}
+                <div className="lg:col-span-7 flex flex-row gap-4">
+                    <div className="flex flex-col gap-2 overflow-y-auto pr-2">
+                        {images.map((image, index) => (
+                            <button key={image.id || index} onClick={() => setSelectedImage(index)} className={`shrink-0 w-20 h-24 rounded-md overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}>
+                                <Image src={image.imageUrl || 'https://placehold.co/80x96'} alt={image.description || product.name} width={80} height={96} className="w-full h-full object-cover" unoptimized />
+                            </button>
+                        ))}
+                    </div>
+                    <div className="flex-1 aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
+                        {images.length > 0 && images[selectedImage]?.imageUrl ? (
+                            <Image
+                                src={images[selectedImage].imageUrl!}
+                                alt={images[selectedImage].description || product.name}
+                                fill
+                                className="object-cover"
+                                priority
+                                unoptimized
+                            />
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Product Details */}
+                <div className="lg:col-span-5">
+                    {brand && <h2 className="text-2xl font-bold tracking-widest uppercase">{brand.name}</h2>}
+                    <div className="flex justify-between items-start">
+                        <h1 className="text-lg text-muted-foreground mt-1">{product.name}</h1>
+                        <Button variant="ghost" size="icon"><Heart className="h-6 w-6"/></Button>
+                    </div>
+                    
+                    <p className="text-2xl font-semibold my-4">DH{product.price.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground">Incl. of taxes, excl. custom duties</p>
+                    
+                    <Separator className="my-6" />
+
+                    <div className="mt-6">
+                        <div className="flex justify-between items-center mb-2">
+                            <Label className="text-base font-semibold">Select your size</Label>
+                            <Sheet>
+                                <SheetTrigger asChild>
+                                    <Button variant="link" className="text-sm p-0 h-auto text-primary">Size Guide</Button>
+                                </SheetTrigger>
+                                <SheetContent>
+                                    <SheetHeader><SheetTitle>Size Guide</SheetTitle></SheetHeader>
+                                    <div className="py-4"><SizeGuide /></div>
+                                </SheetContent>
+                            </Sheet>
+                        </div>
+                        <RadioGroup defaultValue="m" className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                            {defaultSizes.map(size => (
+                                <Label key={size.id} htmlFor={size.id} className={`relative flex items-center justify-center rounded-md border p-3 cursor-pointer hover:bg-muted has-[:checked]:border-primary`}>
+                                    <RadioGroupItem value={size.id} id={size.id} className="sr-only"/>
+                                    <span className="font-semibold">{size.shortName}</span>
+                                </Label>
+                            ))}
+                        </RadioGroup>
+                    </div>
+                    
+                    <div className="mt-8 grid grid-cols-2 gap-4">
+                        <Button onClick={handleBuyNow} size="lg" className="bg-black text-white hover:bg-black/80 rounded-sm w-full h-12">
+                            BUY NOW
+                        </Button>
+                        <Button onClick={handleAddToCart} size="lg" variant="outline" className="rounded-sm w-full h-12">
+                            ADD TO CART
+                        </Button>
+                    </div>
+
+                    <div className="mt-8 space-y-6 text-sm">
+                        <Separator />
+                        <div>
+                            <h3 className="font-semibold uppercase tracking-wider mb-2">Product Description</h3>
+                            <p className="text-muted-foreground">{product.description}</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-y-4 gap-x-8">
+                            {product.productCode && <div><h3 className="font-semibold uppercase tracking-wider">Product Code</h3><p className="text-muted-foreground">{product.productCode}</p></div>}
+                             {product.materials && product.materials.length > 0 && <div><h3 className="font-semibold uppercase tracking-wider">Components</h3><p className="text-muted-foreground">{product.materials.join(', ')}</p></div>}
+                            {product.fit && <div><h3 className="font-semibold uppercase tracking-wider">Fit</h3><p className="text-muted-foreground">{product.fit}</p></div>}
+                            {product.composition && <div><h3 className="font-semibold uppercase tracking-wider">Composition</h3><p className="text-muted-foreground">{product.composition}</p></div>}
+                            {product.care && <div><h3 className="font-semibold uppercase tracking-wider">Care</h3><p className="text-muted-foreground">{product.care}</p></div>}
+                           
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div className="flex-1 aspect-square relative bg-muted rounded-lg overflow-hidden">
-                {images.length > 0 && images[selectedImage]?.imageUrl ? (
-                    <Image
-                        src={images[selectedImage].imageUrl!}
-                        alt={images[selectedImage].description || product.name}
-                        fill
-                        className="object-contain"
-                        priority
-                        unoptimized
-                    />
-                ) : (
-                    <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>
-                )}
+            <div className="mt-16 md:mt-24">
+                <RelatedProducts />
             </div>
         </div>
-
-        {/* Product Details */}
-        <div className="lg:col-span-6">
-            <h1 className="text-3xl md:text-4xl font-headline font-bold">{product.name}</h1>
-            <div className="flex items-center gap-4 mt-2">
-                <p className="text-2xl font-semibold">DH{product.price.toFixed(2)}</p>
-                {product.originalPrice && (
-                    <p className="text-lg text-muted-foreground line-through">DH{product.originalPrice.toFixed(2)}</p>
-                )}
-            </div>
-             <div className="flex items-center gap-1 mt-2 text-sm">
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <Star className="h-4 w-4 text-muted-foreground" />
-                <span className="ml-2 text-muted-foreground">(12 reviews)</span>
-            </div>
-
-            <p className="mt-4 text-muted-foreground">{product.description}</p>
-            
-            <div className="mt-6 space-y-4">
-                <div className="flex items-center gap-2 text-sm">
-                    <Check className="h-5 w-5 text-green-600"/>
-                    <span className="font-medium">In Stock</span>
-                </div>
-                 <div className="flex items-center gap-2 text-sm">
-                    <Truck className="h-5 w-5 text-blue-600"/>
-                    <span>Usually ships within 2-3 business days</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                    <ShieldCheck className="h-5 w-5 text-primary"/>
-                    <span>2 Year Quality Guarantee</span>
-                </div>
-            </div>
-
-            <div className="mt-8">
-                <div className="flex justify-between items-center mb-2">
-                    <Label className="text-base font-semibold">Size</Label>
-                    <Sheet>
-                        <SheetTrigger asChild>
-                            <Button variant="link" className="text-sm p-0 h-auto">
-                                <Info className="mr-1 h-4 w-4"/>
-                                Size Guide
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent>
-                            <SheetHeader>
-                                <SheetTitle>Size Guide</SheetTitle>
-                            </SheetHeader>
-                            <div className="py-4">
-                                <SizeGuide />
-                            </div>
-                        </SheetContent>
-                    </Sheet>
-                </div>
-                <RadioGroup defaultValue="m" className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                    {defaultSizes.map(size => (
-                         <Label key={size.id} htmlFor={size.id} className={`relative flex items-center justify-center rounded-md border p-3 cursor-pointer hover:bg-muted has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary`}>
-                            <RadioGroupItem value={size.id} id={size.id} className="sr-only"/>
-                            <span className="font-semibold">{size.shortName}</span>
-                            {size.shortName === '6XL' && <span className="absolute -top-2 -right-2 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">HOT</span>}
-                         </Label>
-                    ))}
-                    <Label htmlFor="custom" className="flex items-center justify-center rounded-md border border-dashed p-3 cursor-pointer text-primary hover:bg-primary/5 hover:border-primary">
-                        <RadioGroupItem value="custom" id="custom" className="sr-only"/>
-                        <span className="text-xs font-bold text-center">CUSTOM TAILORED</span>
-                    </Label>
-                </RadioGroup>
-            </div>
-
-            <div className="mt-8">
-                <AddToCartForm product={product} />
-            </div>
-
-            <div className="mt-12">
-                <ProductInfoAccordion product={product} />
-            </div>
-        </div>
-      </div>
-      <div className="mt-16 md:mt-24 container mx-auto">
-        <RelatedProducts />
-      </div>
     </div>
   );
 }

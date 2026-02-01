@@ -626,6 +626,10 @@
           "type": "number",
           "description": "Price of the product."
         },
+        "costPrice": {
+          "type": "number",
+          "description": "Cost price of the product."
+        },
         "images": {
           "type": "array",
           "description": "Array of product images.",

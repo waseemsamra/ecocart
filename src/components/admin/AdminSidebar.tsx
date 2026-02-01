@@ -36,6 +36,7 @@ import {
   ChevronRight,
   FolderOpenDot,
   Star,
+  Upload,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -123,6 +124,15 @@ export function AdminSidebar() {
                 </SidebarMenuSub>
               </CollapsibleContent>
             </Collapsible>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={pathname === '/admin/data-upload'} tooltip="Data Upload">
+              <Link href="/admin/data-upload">
+                <Upload />
+                <span>Data Upload</span>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>

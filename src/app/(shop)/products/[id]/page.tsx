@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react';
 import type { Product, Size, Brand } from '@/lib/types';
 import { doc, getDoc, collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
-import { Loader2, Heart } from 'lucide-react';
+import { Loader2, Heart, MessageSquare } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -19,12 +19,16 @@ import {
   SheetTitle,
   SheetTrigger,
   SheetDescription,
+  SheetFooter,
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/context/cart-context';
 import { ProductCallouts } from '@/components/product-callouts';
 import { ProductInfoSections } from '@/components/product-info-sections';
-import { VirtualTryOn } from '@/components/virtual-try-on';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
 
 const RECENTLY_VIEWED_KEY = 'recentlyViewed';
 const MAX_RECENTLY_VIEWED = 10;
@@ -40,6 +44,21 @@ const defaultSizes: Size[] = [
   { id: '4xl', name: '4XL', shortName: '4XL' },
 ];
 
+const sizeChartData = [
+  { size: 'XS', uk: '4', bust: 32, waist: 26, hip: 36 },
+  { size: 'S', uk: '6', bust: 34, waist: 28, hip: 38 },
+  { size: 'M', uk: '8', bust: 36, waist: 30, hip: 40 },
+  { size: 'L', uk: '10', bust: 38, waist: 32, hip: 42 },
+  { size: 'XL', uk: '12', bust: 40, waist: 34, hip: 44 },
+  { size: 'XXL', uk: '14', bust: 42, waist: 36, hip: 46 },
+  { size: '3XL', uk: '16', bust: 44, waist: 38, hip: 48 },
+  { size: '4XL', uk: '18', bust: 46, waist: 40, hip: 50 },
+  { size: '5XL', uk: '20', bust: 48, waist: 42, hip: 52 },
+  { size: '6XL', uk: '22', bust: 50, waist: 44, hip: 54 },
+];
+
+const inchToCm = (inches: number) => Math.round(inches * 2.54);
+
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
   const db = useFirestore();
@@ -51,6 +70,7 @@ export default function ProductDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [unit, setUnit] = useState<'in' | 'cm'>('in');
 
   const productIdOrSlug = params.id;
 
@@ -206,7 +226,7 @@ export default function ProductDetailPage() {
               </h2>
             )}
             <div className="flex justify-between items-start">
-              <h1 className="text-xs text-muted-foreground mt-1">
+              <h1 className="text-sm text-muted-foreground mt-1">
                 {product.name}
               </h1>
               <Button variant="ghost" size="icon">
@@ -214,7 +234,7 @@ export default function ProductDetailPage() {
               </Button>
             </div>
 
-            <p className="text-base font-semibold my-4">
+            <p className="text-lg font-semibold my-4">
               DH{product.price.toFixed(2)}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -225,26 +245,86 @@ export default function ProductDetailPage() {
 
             <div className="mt-6">
               <div className="flex justify-between items-center mb-2">
-                <Label className="text-xs font-semibold">
+                <Label className="text-sm font-semibold">
                   Select your size
                 </Label>
                 <Sheet>
                   <SheetTrigger asChild>
                     <Button
                       variant="link"
-                      className="text-xs p-0 h-auto text-primary"
+                      className="text-sm p-0 h-auto text-primary"
                     >
-                      Size Guide & Virtual Try-On
+                      Size Guide
                     </Button>
                   </SheetTrigger>
-                  <SheetContent className="w-full sm:max-w-4xl">
-                    <SheetHeader>
-                      <SheetTitle>Virtual Try-On</SheetTitle>
-                      <SheetDescription>See how this item looks on you.</SheetDescription>
-                    </SheetHeader>
-                    <div className="py-4">
-                      <VirtualTryOn product={product} />
-                    </div>
+                  <SheetContent className="w-full sm:max-w-3xl p-0 flex flex-col">
+                    <Tabs defaultValue="size-guide" className="flex-1 flex flex-col overflow-hidden">
+                        <SheetHeader className="p-6 pb-0 flex-shrink-0">
+                            <TabsList className="grid w-full grid-cols-3">
+                                <TabsTrigger value="size-guide">SIZE GUIDE</TabsTrigger>
+                                <TabsTrigger value="measuring-guide">MEASURING GUIDE</TabsTrigger>
+                                <TabsTrigger value="how-to-measure">HOW TO MEASURE</TabsTrigger>
+                            </TabsList>
+                        </SheetHeader>
+                        <div className="flex-1 overflow-y-auto p-6">
+                            <TabsContent value="size-guide">
+                                <div className="flex justify-between items-center mb-4">
+                                    <div>
+                                        <h3 className="font-semibold text-lg">Size Chart for Women</h3>
+                                        <p className="text-muted-foreground text-sm">(in inches)</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <Label htmlFor="unit-switch-in" className={unit === 'in' ? 'font-bold' : ''}>in</Label>
+                                        <Switch
+                                            checked={unit === 'cm'}
+                                            onCheckedChange={(checked) => setUnit(checked ? 'cm' : 'in')}
+                                            id="unit-switch"
+                                        />
+                                        <Label htmlFor="unit-switch-cm" className={unit === 'cm' ? 'font-bold' : ''}>cms</Label>
+                                    </div>
+                                </div>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Size</TableHead>
+                                            <TableHead>UK</TableHead>
+                                            <TableHead>Bust</TableHead>
+                                            <TableHead>Waist</TableHead>
+                                            <TableHead>Hip</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {sizeChartData.map((size) => (
+                                            <TableRow key={size.size}>
+                                                <TableCell className="font-semibold">{size.size}</TableCell>
+                                                <TableCell>{size.uk}</TableCell>
+                                                <TableCell>{unit === 'in' ? size.bust : inchToCm(size.bust)}</TableCell>
+                                                <TableCell>{unit === 'in' ? size.waist : inchToCm(size.waist)}</TableCell>
+                                                <TableCell>{unit === 'in' ? size.hip : inchToCm(size.hip)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TabsContent>
+                            <TabsContent value="measuring-guide">
+                                <h3 className="font-semibold text-lg mb-4">Measuring Guide</h3>
+                                <p>Detailed instructions on how to measure yourself will be here.</p>
+                            </TabsContent>
+                            <TabsContent value="how-to-measure">
+                                <h3 className="font-semibold text-lg mb-4">How to Measure</h3>
+                                <p>A visual guide on how to take your measurements will be here.</p>
+                            </TabsContent>
+                        </div>
+                        <SheetFooter className="p-6 bg-secondary text-sm space-y-2 text-left flex-shrink-0">
+                            <div className="flex items-center gap-2">
+                                <MessageSquare className="h-5 w-5" />
+                                <p>Whatsapp Us at <span className="font-bold">+91 84880 70070</span> if you are unsure of your size.</p>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                This is a standard size guide for the basic body measurements. Length will vary according to style. There may also be variations in some brands commonly with Indian clothing, so please refer to the product measurements displayed on the product page. Alternatively, you may contact our customer care for specific queries at <a href="mailto:customercare@perniaspopupshop.com" className="underline">customercare@perniaspopupshop.com</a>
+                            </p>
+                        </SheetFooter>
+                    </Tabs>
                   </SheetContent>
                 </Sheet>
               </div>

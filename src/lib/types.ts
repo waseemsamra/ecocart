@@ -239,3 +239,12 @@ export interface ProductCallout {
     createdAt?: any;
     updatedAt?: any;
 }
+
+export interface ProductInfoSection {
+    id: string;
+    title: string;
+    description: string;
+    order: number;
+    createdAt?: any;
+    updatedAt?: any;
+}

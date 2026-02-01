@@ -974,6 +974,19 @@
         "order": { "type": "number" }
       },
       "required": ["id", "title", "description", "linkText"]
+    },
+    "ProductInfoSection": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ProductInfoSection",
+      "type": "object",
+      "description": "Represents a generic informational section on the product detail page, like 'Shipping Information' or 'Disclaimer'.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["id", "title", "description"]
     }
   },
   "auth": {
@@ -1252,6 +1265,22 @@
             {
               "name": "calloutId",
               "description": "The unique identifier for the callout."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/productInfoSections/{sectionId}",
+        "definition": {
+          "entityName": "ProductInfoSection",
+          "schema": {
+            "$ref": "#/backend/entities/ProductInfoSection"
+          },
+          "description": "Stores content for global product detail page sections like 'Shipping' or 'Disclaimer'. Publicly readable, write access restricted to administrators.",
+          "params": [
+            {
+              "name": "sectionId",
+              "description": "The unique identifier for the info section."
             }
           ]
         }

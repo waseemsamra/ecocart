@@ -232,6 +232,13 @@ export function AdminSidebar() {
                       </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton asChild isActive={pathname === '/admin/content/product-info-sections'}>
+                      <Link href="/admin/content/product-info-sections">
+                        Product Info Sections
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
                 </SidebarMenuSub>
               </CollapsibleContent>
             </Collapsible>

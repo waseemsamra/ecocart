@@ -22,6 +22,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/context/cart-context';
 import { ProductCallouts } from '@/components/product-callouts';
+import { ProductInfoSections } from '@/components/product-info-sections';
 
 const RECENTLY_VIEWED_KEY = 'recentlyViewed';
 const MAX_RECENTLY_VIEWED = 10;
@@ -158,10 +159,10 @@ export default function ProductDetailPage() {
   return (
     <div className="py-8 md:py-12">
         <div className="px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 lg:gap-12">
                 
                 {/* Image Gallery */}
-                <div className="lg:col-span-5 flex flex-row-reverse gap-4">
+                <div className="lg:col-span-6 flex flex-row-reverse gap-4">
                     <div className="flex-1 aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
                         {images.length > 0 && images[selectedImage]?.imageUrl ? (
                             <Image
@@ -176,9 +177,9 @@ export default function ProductDetailPage() {
                             <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>
                         )}
                     </div>
-                     <div className="flex flex-col gap-2 overflow-y-auto pr-2">
+                     <div className="w-20 shrink-0 flex flex-col gap-2 overflow-y-auto pr-2">
                         {images.map((image, index) => (
-                            <button key={image.id || index} onClick={() => setSelectedImage(index)} className={`shrink-0 w-20 h-24 rounded-md overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}>
+                            <button key={image.id || index} onClick={() => setSelectedImage(index)} className={`block w-full aspect-[3/4] rounded-md overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}>
                                 <Image src={image.imageUrl || 'https://placehold.co/80x96'} alt={image.description || product.name} width={80} height={96} className="w-full h-full object-cover" unoptimized />
                             </button>
                         ))}
@@ -186,7 +187,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Product Details */}
-                <div className="lg:col-span-7">
+                <div className="lg:col-span-4">
                     {brand && <h2 className="text-2xl font-bold tracking-widest uppercase">{brand.name}</h2>}
                     <div className="flex justify-between items-start">
                         <h1 className="text-lg text-muted-foreground mt-1">{product.name}</h1>
@@ -232,7 +233,7 @@ export default function ProductDetailPage() {
 
                     <ProductCallouts />
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
                         <div className="md:col-span-2">
                             <h3 className="font-semibold uppercase tracking-wider mb-2">Product Description</h3>
                             <p className="text-muted-foreground">{product.description}</p>
@@ -249,6 +250,8 @@ export default function ProductDetailPage() {
                             )}
                         </div>
                     </div>
+
+                    <ProductInfoSections />
 
                     <Separator />
 

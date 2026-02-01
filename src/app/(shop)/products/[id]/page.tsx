@@ -128,7 +128,7 @@ export default function ProductDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 lg:gap-12 px-4 sm:px-6 lg:px-8">
         
         {/* Image Gallery */}
-        <div className="lg:col-span-3 flex flex-col-reverse md:flex-row gap-4">
+        <div className="lg:col-span-4 flex flex-col-reverse md:flex-row gap-4">
             <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto pr-2 pb-2 md:pb-0">
                 {images.map((image, index) => (
                     <button key={image.id || index} onClick={() => setSelectedImage(index)} className={`shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}>
@@ -153,7 +153,7 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Product Details */}
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-6">
             <h1 className="text-3xl md:text-4xl font-headline font-bold">{product.name}</h1>
             <div className="flex items-center gap-4 mt-2">
                 <p className="text-2xl font-semibold">DH{product.price.toFixed(2)}</p>

@@ -19,6 +19,7 @@ import {
   SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetTrigger,
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/context/cart-context';

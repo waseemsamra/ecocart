@@ -160,6 +160,7 @@ export interface StoreSettings {
   contactPhone?: string;
   address?: string;
   companyDetails?: string;
+  measuringGuideImageUrl?: string;
   updatedAt?: any;
 }
 

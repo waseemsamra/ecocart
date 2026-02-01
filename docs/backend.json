@@ -884,6 +884,11 @@
         "companyDetails": {
           "type": "string",
           "description": "Additional company details for invoices (e.g., VAT number, registration number)."
+        },
+        "measuringGuideImageUrl": {
+          "type": "string",
+          "description": "URL of the image for the size measuring guide.",
+          "format": "uri"
         }
       },
       "required": [

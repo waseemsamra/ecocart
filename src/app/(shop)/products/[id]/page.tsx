@@ -2,9 +2,10 @@
 
 import { useParams, notFound, useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
-import type { Product, Size, Brand } from '@/lib/types';
+import type { Product, Size, Brand, StoreSettings } from '@/lib/types';
 import { doc, getDoc, collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
+import { useDoc } from '@/firebase/firestore/use-doc';
 import { Loader2, Heart, MessageSquare } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -18,7 +19,6 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
-  SheetFooter,
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
@@ -28,7 +28,6 @@ import { ProductInfoSections } from '@/components/product-info-sections';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 
 const RECENTLY_VIEWED_KEY = 'recentlyViewed';
@@ -72,7 +71,12 @@ export default function ProductDetailPage() {
   const [error, setError] = useState<Error | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [unit, setUnit] = useState<'in' | 'cm'>('in');
-  const measuringGuideImage = PlaceHolderImages.find(img => img.id === 'measuring-guide');
+  
+  const settingsRef = useMemo(() => {
+    if (!db) return null;
+    return doc(db, 'settings', 'storeDetails');
+  }, [db]);
+  const { data: storeSettings, isLoading: isLoadingSettings } = useDoc<StoreSettings>(settingsRef);
 
   const productIdOrSlug = params.id;
 
@@ -146,7 +150,7 @@ export default function ProductDetailPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingSettings) {
     return (
       <div className="flex justify-center items-center min-h-[80vh]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -311,21 +315,19 @@ export default function ProductDetailPage() {
                                 </Table>
                             </TabsContent>
                             <TabsContent value="measuring-guide">
-                                {measuringGuideImage ? (
+                                {storeSettings?.measuringGuideImageUrl ? (
                                     <div className="relative w-full aspect-[2/3]">
                                         <Image
-                                            src={measuringGuideImage.imageUrl}
-                                            alt={measuringGuideImage.description}
+                                            src={storeSettings.measuringGuideImageUrl}
+                                            alt="Measuring guide diagram"
                                             fill
                                             className="object-contain"
-                                            data-ai-hint={measuringGuideImage.imageHint}
-                                            unoptimized
                                         />
                                     </div>
                                 ) : (
                                     <>
                                         <h3 className="font-semibold text-lg mb-4">Measuring Guide</h3>
-                                        <p>Detailed instructions on how to measure yourself will be here.</p>
+                                        <p>No measuring guide image has been uploaded yet. Please upload one in the admin panel under Settings {'>'} Store Details.</p>
                                     </>
                                 )}
                             </TabsContent>

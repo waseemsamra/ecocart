@@ -23,6 +23,7 @@ const storeSettingsSchema = z.object({
   contactPhone: z.string().optional(),
   address: z.string().optional(),
   companyDetails: z.string().optional(),
+  measuringGuideImageUrl: z.string().optional(),
 });
 
 type StoreSettingsFormValues = z.infer<typeof storeSettingsSchema>;
@@ -33,6 +34,8 @@ export default function StoreDetailsPage() {
   const [loading, setLoading] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [guideImageFile, setGuideImageFile] = useState<File | null>(null);
+  const [guideImagePreview, setGuideImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { loading: authLoading } = useAuth();
 
@@ -52,6 +55,7 @@ export default function StoreDetailsPage() {
       contactPhone: '',
       address: '',
       companyDetails: '',
+      measuringGuideImageUrl: '',
     },
   });
 
@@ -63,9 +67,13 @@ export default function StoreDetailsPage() {
         contactPhone: storeSettings.contactPhone || '',
         address: storeSettings.address || '',
         companyDetails: storeSettings.companyDetails || '',
+        measuringGuideImageUrl: storeSettings.measuringGuideImageUrl || '',
       });
       if(storeSettings.logoUrl) {
           setLogoPreview(storeSettings.logoUrl);
+      }
+      if(storeSettings.measuringGuideImageUrl) {
+        setGuideImagePreview(storeSettings.measuringGuideImageUrl);
       }
     }
   }, [storeSettings, form]);
@@ -81,6 +89,18 @@ export default function StoreDetailsPage() {
       reader.readAsDataURL(file);
     }
   };
+  
+  const handleGuideImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setGuideImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setGuideImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const onSubmit = async (data: StoreSettingsFormValues) => {
     setLoading(true);
@@ -91,31 +111,41 @@ export default function StoreDetailsPage() {
     }
     try {
       let logoUrl = storeSettings?.logoUrl || '';
+      let measuringGuideImageUrl = storeSettings?.measuringGuideImageUrl || '';
 
-      if (logoFile) {
+      if (logoFile || guideImageFile) {
         setIsUploading(true);
-        const formData = new FormData();
-        formData.append("file", logoFile);
+        const uploadPromises = [];
 
-        const response = await fetch('/api/image', {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!response.ok) {
-            const errorBody = await response.text();
-            throw new Error(`Image upload failed: ${response.status} ${errorBody}`);
+        if (logoFile) {
+          const logoFormData = new FormData();
+          logoFormData.append("file", logoFile);
+          uploadPromises.push(
+            fetch('/api/image', { method: 'POST', body: logoFormData })
+              .then(res => res.json())
+              .then(result => { logoUrl = result.url; })
+          );
         }
 
-        const result = await response.json();
-        logoUrl = result.url;
+        if (guideImageFile) {
+          const guideFormData = new FormData();
+          guideFormData.append("file", guideImageFile);
+          uploadPromises.push(
+            fetch('/api/image', { method: 'POST', body: guideFormData })
+              .then(res => res.json())
+              .then(result => { measuringGuideImageUrl = result.url; })
+          );
+        }
+        
+        await Promise.all(uploadPromises);
         setIsUploading(false);
       }
-
+      
       await setDoc(doc(db, 'settings', 'storeDetails'), {
         ...data,
         id: 'storeDetails',
         logoUrl,
+        measuringGuideImageUrl,
         updatedAt: new Date(),
       }, { merge: true });
 
@@ -218,9 +248,9 @@ export default function StoreDetailsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Branding</CardTitle>
-              <CardDescription>Upload your company logo. This will appear on invoices and headers.</CardDescription>
+              <CardDescription>Upload your company logo and other brand assets.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
               <FormItem>
                 <FormLabel>Store Logo</FormLabel>
                 <div className="mt-2 flex items-center gap-6">
@@ -238,6 +268,27 @@ export default function StoreDetailsPage() {
                             {logoFile ? 'Change Logo' : 'Upload Logo'}
                         </Button>
                         <p className="text-xs text-muted-foreground">PNG, JPG, GIF, WebP up to 5MB.</p>
+                    </div>
+                </div>
+                 <FormMessage />
+              </FormItem>
+               <FormItem>
+                <FormLabel>Measuring Guide Image</FormLabel>
+                <div className="mt-2 flex items-center gap-6">
+                    {guideImagePreview ? (
+                        <img src={guideImagePreview} alt="Measuring Guide preview" width={80} height={80} className="rounded-lg object-contain h-20 w-20 bg-muted border p-1" />
+                    ) : (
+                        <div className="h-20 w-20 flex items-center justify-center rounded-lg bg-muted text-muted-foreground border">
+                            <UploadCloud className="h-8 w-8" />
+                        </div>
+                    )}
+                    <div className='flex flex-col gap-2'>
+                        <Input id="guide-image-upload" type="file" accept="image/*" onChange={handleGuideImageChange} className="hidden" />
+                        <Button type="button" variant="outline" onClick={() => document.getElementById('guide-image-upload')?.click()} disabled={isUploading}>
+                            {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {guideImageFile ? 'Change Image' : 'Upload Image'}
+                        </Button>
+                        <p className="text-xs text-muted-foreground">Image for the size guide pop-up.</p>
                     </div>
                 </div>
                  <FormMessage />

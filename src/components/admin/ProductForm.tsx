@@ -292,18 +292,23 @@ export function ProductForm({ product }: { product?: Product }) {
 
         const validImages = finalImages.filter(img => img.imageUrl && img.imageUrl.trim() !== '');
 
-        const dataToSave: Omit<Product, 'id'> = {
+        const dataToSave: Record<string, any> = {
             ...data,
             slug: slugify(data.name),
             images: validImages,
             updatedAt: serverTimestamp(),
         };
 
+        if (dataToSave.originalPrice === undefined) {
+            delete dataToSave.originalPrice;
+        }
+
       if (product?.id) {
         await updateDoc(doc(db, 'products', product.id), dataToSave);
         toast({ title: 'Success', description: 'Product updated.' });
       } else {
-        await addDoc(collection(db, 'products'), { ...dataToSave, createdAt: serverTimestamp() });
+        dataToSave.createdAt = serverTimestamp();
+        await addDoc(collection(db, 'products'), dataToSave);
         toast({ title: 'Success', description: 'New product added.' });
       }
       router.push('/admin/products');

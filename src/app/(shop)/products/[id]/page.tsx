@@ -159,37 +159,47 @@ export default function ProductDetailPage() {
   return (
     <div className="py-8 md:py-12">
         <div className="px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-12">
+            <div className="grid grid-cols-1 lg:flex gap-8 lg:gap-12">
                 
                 {/* Image Gallery */}
-                <div 
-                  className="lg:col-span-1 flex flex-row-reverse gap-4"
+                <div
+                  className="lg:w-1/3"
+                  style={{
+                    resize: 'both',
+                    overflow: 'auto',
+                    border: '2px dashed blue',
+                    padding: '1rem',
+                  }}
                 >
-                    <div className="flex-1 aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
-                        {images.length > 0 && images[selectedImage]?.imageUrl ? (
-                            <Image
-                                src={images[selectedImage].imageUrl!}
-                                alt={images[selectedImage].description || product.name}
-                                fill
-                                className="object-cover"
-                                priority
-                                unoptimized
-                            />
-                        ) : (
-                            <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>
-                        )}
-                    </div>
-                     <div className="w-20 shrink-0 flex flex-col gap-2 overflow-y-auto pr-2">
-                        {images.map((image, index) => (
-                            <button key={image.id || index} onClick={() => setSelectedImage(index)} className={`block w-full aspect-[3/4] rounded-md overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}>
-                                <Image src={image.imageUrl || 'https://placehold.co/80x96'} alt={image.description || product.name} width={80} height={96} className="w-full h-full object-cover" unoptimized />
-                            </button>
-                        ))}
+                    <div 
+                      className="flex flex-row-reverse gap-4"
+                    >
+                        <div className="flex-1 aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
+                            {images.length > 0 && images[selectedImage]?.imageUrl ? (
+                                <Image
+                                    src={images[selectedImage].imageUrl!}
+                                    alt={images[selectedImage].description || product.name}
+                                    fill
+                                    className="object-cover"
+                                    priority
+                                    unoptimized
+                                />
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>
+                            )}
+                        </div>
+                         <div className="w-20 shrink-0 flex flex-col gap-2 overflow-y-auto pr-2">
+                            {images.map((image, index) => (
+                                <button key={image.id || index} onClick={() => setSelectedImage(index)} className={`block w-full aspect-[3/4] rounded-md overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}>
+                                    <Image src={image.imageUrl || 'https://placehold.co/80x96'} alt={image.description || product.name} width={80} height={96} className="w-full h-full object-cover" unoptimized />
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
                 {/* Product Details */}
-                <div className="lg:col-span-3">
+                <div className="flex-1">
                     {brand && <h2 className="text-2xl font-bold tracking-widest uppercase">{brand.name}</h2>}
                     <div className="flex justify-between items-start">
                         <h1 className="text-lg text-muted-foreground mt-1">{product.name}</h1>

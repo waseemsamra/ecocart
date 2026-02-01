@@ -162,7 +162,7 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* Image Gallery */}
           <div className="lg:col-span-5">
-            <div className="relative resize-both overflow-auto border-2 border-dashed border-blue-500 p-2">
+            <div className="relative">
               <div className="flex flex-row-reverse gap-4">
                 <div className="flex-1 aspect-[3/4] relative bg-muted rounded-lg overflow-hidden">
                   {images.length > 0 && images[selectedImage]?.imageUrl ? (

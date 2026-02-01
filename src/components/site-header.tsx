@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ShoppingBag, Search, ChevronDown, User, LogOut } from 'lucide-react';
+import { ShoppingBag, Search, ChevronDown, User, LogOut, Menu } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useCart } from '@/context/cart-context';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,7 @@ import {
   SheetTrigger
 } from '@/components/ui/sheet';
 import { ProductsDrawer } from './products-drawer';
+import { Separator } from './ui/separator';
 
 function CartButton() {
   const { cartCount } = useCart();
@@ -117,7 +118,8 @@ function AuthButton() {
 
 
 export function SiteHeader() {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [productsDrawerOpen, setProductsDrawerOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -180,10 +182,46 @@ export function SiteHeader() {
       </div>
       <div className="container flex h-20 items-center justify-between gap-4 md:gap-8">
         {/* Left Section */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2 md:gap-6">
+          <div className="md:hidden">
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Open Menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-full max-w-xs flex flex-col p-0">
+                <SheetHeader className="p-6">
+                  <Logo />
+                </SheetHeader>
+                <Separator />
+                <div className="flex-1 overflow-y-auto">
+                    <div className="p-6">
+                       <ProductsDrawer onLinkClick={() => setMobileMenuOpen(false)} />
+                    </div>
+                     <Separator />
+                    <nav className="p-6 flex flex-col gap-4 text-lg font-semibold">
+                      {navLinks.map(link => (
+                        <Link
+                          key={link.label}
+                          href={link.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={`transition-colors hover:text-primary ${
+                            link.active ? 'text-accent' : 'text-foreground'
+                          }`}
+                        >
+                          {link.label}
+                        </Link>
+                      ))}
+                    </nav>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
           <Logo />
           <nav className="hidden items-center gap-6 md:flex">
-             <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+             <Sheet open={productsDrawerOpen} onOpenChange={setProductsDrawerOpen}>
               <SheetTrigger asChild>
                 <button
                   className="text-sm font-medium transition-colors hover:text-primary"
@@ -198,7 +236,7 @@ export function SiteHeader() {
                     Browse our products by category and sub-category.
                   </SheetDescription>
                 </SheetHeader>
-                <ProductsDrawer onLinkClick={() => setDrawerOpen(false)} />
+                <ProductsDrawer onLinkClick={() => setProductsDrawerOpen(false)} />
               </SheetContent>
             </Sheet>
             {navLinks.map(link => (

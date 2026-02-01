@@ -12,7 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CreditCard, Truck } from 'lucide-react';
+import { CreditCard, Loader2, Truck } from 'lucide-react';
+import { useEffect } from 'react';
 
 const checkoutSchema = z.object({
   email: z.string().email(),
@@ -78,6 +79,12 @@ export default function CheckoutPage() {
 
   const paymentMethod = form.watch('paymentMethod');
 
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      router.push('/');
+    }
+  }, [cartItems, router]);
+
   const onSubmit = (data: CheckoutFormValues) => {
     console.log('Order placed:', data);
     toast({
@@ -88,9 +95,13 @@ export default function CheckoutPage() {
     router.push('/');
   };
   
-  if (cartItems.length === 0 && typeof window !== 'undefined') {
-      router.push('/');
-      return null;
+  if (cartItems.length === 0) {
+    return (
+        <div className="container py-12 flex justify-center items-center min-h-[60vh] flex-col gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <p className="text-muted-foreground">Your cart is empty. Redirecting...</p>
+        </div>
+      );
   }
 
   return (

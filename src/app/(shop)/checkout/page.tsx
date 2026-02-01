@@ -86,13 +86,36 @@ export default function CheckoutPage() {
   }, [cartItems, router]);
 
   const onSubmit = (data: CheckoutFormValues) => {
-    console.log('Order placed:', data);
-    toast({
-      title: 'Order Successful!',
-      description: "Thank you for your purchase. We'll process your order shortly.",
-    });
+    const orderId = `CC-${Date.now()}`;
+
+    const orderDetails = {
+      orderId,
+      shippingDetails: {
+        name: data.name,
+        email: data.email,
+        address: data.address,
+        city: data.city,
+        zip: data.zip,
+        country: data.country,
+      },
+      items: cartItems,
+      total: cartTotal,
+    };
+
+    try {
+      sessionStorage.setItem('latestOrder', JSON.stringify(orderDetails));
+    } catch (error) {
+      console.error("Could not save order to session storage", error);
+      toast({
+        variant: "destructive",
+        title: "Could not proceed to confirmation",
+        description: "There was an issue saving your order details. Please try again.",
+      });
+      return;
+    }
+
     clearCart();
-    router.push('/');
+    router.push('/order-confirmation');
   };
   
   if (cartItems.length === 0) {

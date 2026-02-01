@@ -12,7 +12,7 @@ import { ProductFilters } from '@/components/product-filters';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 
 function ProductsPageContent() {
   const [filters, setFilters] = useState<Record<string, string[]>>({});
@@ -112,6 +112,7 @@ function ProductsPageContent() {
                     <SheetContent side="left">
                       <SheetHeader>
                         <SheetTitle>Filters</SheetTitle>
+                        <SheetDescription className="sr-only">Apply filters to narrow down product results.</SheetDescription>
                       </SheetHeader>
                       <div className="py-4">
                         {filtersComponent}

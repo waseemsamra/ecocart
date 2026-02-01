@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { cn, slugify } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
 import Image from 'next/image';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 
 function BrandPageContent() {
   const params = useParams<{ slug: string }>();
@@ -154,6 +154,7 @@ function BrandPageContent() {
                     <SheetContent side="left">
                       <SheetHeader>
                         <SheetTitle>Filters</SheetTitle>
+                        <SheetDescription className="sr-only">Apply filters to narrow down product results.</SheetDescription>
                       </SheetHeader>
                       <div className="py-4">
                         {filtersComponent}

@@ -193,6 +193,8 @@ export function SiteHeader() {
               </SheetTrigger>
               <SheetContent side="left" className="w-full max-w-xs flex flex-col p-0">
                 <SheetHeader className="p-6">
+                  <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
+                  <SheetDescription className="sr-only">Main navigation links</SheetDescription>
                   <Logo />
                 </SheetHeader>
                 <Separator />

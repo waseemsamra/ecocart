@@ -16,10 +16,10 @@ const VirtualTryOnInputSchema = z.object({
     .describe(
       "A photo of a person, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
-  productImageDataUri: z
+  productImageUrl: z
     .string()
     .describe(
-      "A photo of a clothing item, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "URL of a photo of a clothing item."
     ),
 });
 export type VirtualTryOnInput = z.infer<typeof VirtualTryOnInputSchema>;
@@ -39,12 +39,12 @@ const virtualTryOnFlow = ai.defineFlow(
     inputSchema: VirtualTryOnInputSchema,
     outputSchema: VirtualTryOnOutputSchema,
   },
-  async ({userPhotoDataUri, productImageDataUri}) => {
+  async ({userPhotoDataUri, productImageUrl}) => {
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.5-flash-image-preview',
       prompt: [
         {media: {url: userPhotoDataUri}},
-        {media: {url: productImageDataUri}},
+        {media: {url: productImageUrl}},
         {
           text: 'You are a virtual stylist. Take the clothing item from the second image and realistically place it on the person in the first image. Preserve the person\'s pose and background as much as possible. The output should be a photorealistic image of the person wearing the clothing.',
         },

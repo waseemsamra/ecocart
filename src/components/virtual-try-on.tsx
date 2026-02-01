@@ -20,21 +20,6 @@ const fileToDataUri = (file: File): Promise<string> => {
     });
 };
 
-// Helper function to fetch an image and convert it to a data URI
-const imageUrlToDataUri = async (url: string): Promise<string> => {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch image from ${url}`);
-    }
-    const blob = await response.blob();
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
-};
-
 
 export function VirtualTryOn({ product }: { product: Product }) {
   const [userImageFile, setUserImageFile] = useState<File | null>(null);
@@ -70,7 +55,7 @@ export function VirtualTryOn({ product }: { product: Product }) {
         toast({
             variant: 'destructive',
             title: 'Missing Image',
-            description: 'Please upload your photo first.',
+            description: 'Please upload your photo and ensure the product has an image.',
         });
         return;
     }
@@ -79,17 +64,10 @@ export function VirtualTryOn({ product }: { product: Product }) {
     setGeneratedImage(null);
 
     try {
-        // We need to use a CORS proxy to fetch the image on the client-side
-        // This is a common issue when trying to read pixel data from cross-origin images.
-        // For this demo, we'll use a public proxy. In a real app, you should host your own.
-        const productImageUrl = `https://cors-anywhere.herokuapp.com/${product.images[0].imageUrl}`;
+        const userPhotoDataUri = await fileToDataUri(userImageFile);
+        const productImageUrl = product.images[0].imageUrl;
 
-        const [userPhotoDataUri, productImageDataUri] = await Promise.all([
-             fileToDataUri(userImageFile),
-             imageUrlToDataUri(productImageUrl)
-        ]);
-
-        const input: VirtualTryOnInput = { userPhotoDataUri, productImageDataUri };
+        const input: VirtualTryOnInput = { userPhotoDataUri, productImageUrl };
         
         const result = await virtualTryOn(input);
 

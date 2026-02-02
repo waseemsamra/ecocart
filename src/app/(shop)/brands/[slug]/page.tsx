@@ -7,7 +7,7 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 import { useFirestore } from '@/firebase/provider';
 import type { Product, Brand } from '@/lib/types';
 import { ProductCard } from '@/components/product-card';
-import { Loader2, LayoutGrid, List, Filter } from 'lucide-react';
+import { Loader2, LayoutGrid, List, Filter, ArrowLeft, ArrowRight } from 'lucide-react';
 import { ProductFilters } from '@/components/product-filters';
 import { Button } from '@/components/ui/button';
 import { cn, slugify } from '@/lib/utils';
@@ -15,10 +15,43 @@ import { useAuth } from '@/context/auth-context';
 import Image from 'next/image';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 
+function Pagination({ currentPage, totalPages, onPageChange }: { currentPage: number, totalPages: number, onPageChange: (page: number) => void }) {
+    const handlePrevious = () => {
+        onPageChange(currentPage - 1);
+    };
+
+    const handleNext = () => {
+        onPageChange(currentPage + 1);
+    };
+
+    if (totalPages <= 1) {
+        return null;
+    }
+
+    return (
+        <div className="flex items-center justify-center space-x-6 mt-12">
+            <Button variant="outline" onClick={handlePrevious} disabled={currentPage <= 1}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Previous
+            </Button>
+            <span className="text-sm font-medium">
+                Page {currentPage} of {totalPages}
+            </span>
+            <Button variant="outline" onClick={handleNext} disabled={currentPage >= totalPages}>
+                Next
+                <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+        </div>
+    );
+}
+
+
 function BrandPageContent() {
   const params = useParams<{ slug: string }>();
   const [filters, setFilters] = useState<Record<string, string[]>>({});
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 70;
   const { loading: authLoading } = useAuth();
   const db = useFirestore();
   
@@ -105,6 +138,16 @@ function BrandPageContent() {
     return result;
   }, [products]);
 
+  const paginatedProducts = useMemo(() => {
+    if (!products) return [];
+    const startIndex = (currentPage - 1) * productsPerPage;
+    return products.slice(startIndex, startIndex + productsPerPage);
+  }, [products, currentPage]);
+  
+  const pageCount = useMemo(() => {
+      return products ? Math.ceil(products.length / productsPerPage) : 0;
+  }, [products]);
+
 
   if (isLoading) {
     return (
@@ -163,7 +206,7 @@ function BrandPageContent() {
                   </Sheet>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {isLoadingProducts ? 'Searching...' : `Showing ${products?.length || 0} products`}
+                  {isLoadingProducts ? 'Searching...' : `Showing ${paginatedProducts.length} of ${products?.length || 0} products`}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -191,14 +234,17 @@ function BrandPageContent() {
             {!isLoadingProducts && !error && (
               <>
               {products && products.length > 0 ? (
+                <>
                   <div className={cn(
                       "grid gap-8",
                       layout === 'grid' ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1"
                   )}>
-                      {products.map(product => (
+                      {paginatedProducts.map(product => (
                           <ProductCard key={product.id} product={product} layout={layout} />
                       ))}
                   </div>
+                  <Pagination currentPage={currentPage} totalPages={pageCount} onPageChange={setCurrentPage} />
+                </>
               ) : (
                   <div className="text-center py-24 border-2 border-dashed rounded-lg">
                       <h3 className="font-headline text-2xl font-bold">No Products Found</h3>

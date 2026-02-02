@@ -13,10 +13,13 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
+import { Pagination } from '@/components/pagination';
 
 function ProductsPageContent() {
   const [filters, setFilters] = useState<Record<string, string[]>>({});
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 100;
   const { loading: authLoading } = useAuth();
   const db = useFirestore();
   
@@ -82,6 +85,16 @@ function ProductsPageContent() {
     return "Use our advanced filters to discover products tailored to your brand's needs. Select materials, sizes, colors, and more.";
   }, [showInWeddingTales, showInDesignersOnDiscount, packagingPartnerTag]);
 
+  const paginatedProducts = useMemo(() => {
+    if (!products) return [];
+    const startIndex = (currentPage - 1) * productsPerPage;
+    return products.slice(startIndex, startIndex + productsPerPage);
+  }, [products, currentPage]);
+
+  const pageCount = useMemo(() => {
+    return products ? Math.ceil(products.length / productsPerPage) : 0;
+  }, [products]);
+
   const filtersComponent = (
      <ProductFilters onFiltersChange={setFilters} initialFilters={initialFilters} />
   );
@@ -121,7 +134,7 @@ function ProductsPageContent() {
                   </Sheet>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                    {isLoading ? 'Searching...' : `Showing ${products?.length || 0} products`}
+                    {isLoading ? 'Searching...' : `Showing ${paginatedProducts.length} of ${products?.length || 0} products`}
                 </p>
             </div>
             <div className="flex items-center gap-2">
@@ -149,14 +162,17 @@ function ProductsPageContent() {
           {!isLoading && !error && (
             <>
             {products && products.length > 0 ? (
-                <div className={cn(
-                    "grid gap-8",
-                    layout === 'grid' ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1"
-                )}>
-                    {products.map(product => (
-                        <ProductCard key={product.id} product={product} layout={layout} />
-                    ))}
-                </div>
+                <>
+                    <div className={cn(
+                        "grid gap-8",
+                        layout === 'grid' ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1"
+                    )}>
+                        {paginatedProducts.map(product => (
+                            <ProductCard key={product.id} product={product} layout={layout} />
+                        ))}
+                    </div>
+                    <Pagination currentPage={currentPage} totalPages={pageCount} onPageChange={setCurrentPage} />
+                </>
              ) : (
                 <div className="text-center py-24 border-2 border-dashed rounded-lg">
                     <h3 className="font-headline text-2xl font-bold">No Products Found</h3>

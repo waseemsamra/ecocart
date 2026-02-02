@@ -177,7 +177,7 @@ export default function ShippingTimesPage() {
                                 <TableRow key={shippingTime.id}>
                                     <TableCell className="font-medium">{shippingTime.name}</TableCell>
                                     <TableCell>{shippingTime.duration}</TableCell>
-                                    <TableCell>DH{shippingTime.cost.toFixed(2)}</TableCell>
+                                    <TableCell>${shippingTime.cost.toFixed(2)}</TableCell>
                                     <TableCell>{shippingTime.createdAt ? format(shippingTime.createdAt.toDate(), 'MMM d, yyyy') : 'N/A'}</TableCell>
                                     <TableCell className="text-right">
                                          <DropdownMenu>
@@ -236,4 +236,3 @@ export default function ShippingTimesPage() {
         </div>
     );
 }
-    

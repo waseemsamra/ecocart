@@ -59,7 +59,7 @@ export default function CartPage() {
                       </TableCell>
                       <TableCell>
                         <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-muted-foreground">DH{item.price.toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-2">
@@ -72,7 +72,7 @@ export default function CartPage() {
                           </Button>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-medium">DH{(item.price * item.quantity).toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-medium">${(item.price * item.quantity).toFixed(2)}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)}>
                           <Trash2 className="h-5 w-5 text-muted-foreground" />
@@ -93,7 +93,7 @@ export default function CartPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>DH{cartTotal.toFixed(2)}</span>
+                <span>${cartTotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
@@ -101,7 +101,7 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between font-bold text-lg pt-4 border-t">
                 <span>Total</span>
-                <span>DH{cartTotal.toFixed(2)}</span>
+                <span>${cartTotal.toFixed(2)}</span>
               </div>
             </CardContent>
             <CardFooter>

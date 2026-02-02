@@ -103,13 +103,13 @@ export default function OrderConfirmationPage() {
                                 <p className="font-medium">{item.name}</p>
                                 <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
                             </div>
-                            <p className="font-medium">DH{(item.price * item.quantity).toFixed(2)}</p>
+                            <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
                         </div>
                     ))}
                     <Separator />
                     <div className="flex justify-between font-bold text-lg">
                         <span>Total</span>
-                        <span>DH{order.total.toFixed(2)}</span>
+                        <span>${order.total.toFixed(2)}</span>
                     </div>
                 </CardContent>
             </Card>

@@ -269,7 +269,7 @@ export function SiteHeader() {
                   <path fill="#cf142b" d="m288 0 160 106.7V0h64v32l-160 106.7V224h-64v-85.3L64 0H0v64l224 149.3V288h64v-74.7L512 384v64l-224-149.3V224h-64v74.7L0 128V64l224 149.3V160h64v-53.3zM224 512l160-106.7V512h64v-32L288 373.3V320h-64v85.3L0 512h64v-64l224-149.3V288h-64v74.7L512 128V64l-224 149.3V224h64v-74.7L0 224v-64l224-149.3V160h-64V85.3L512 0v224h-64V117.3L256 256l256 128v-64h-64L256 192l-192 128v64h64l192-128 192 128h64v-64L320 256l192-192v-64h-64L256 128 64 0H0z"/>
                 </svg>
                 <span>Ship to:</span>
-                <span className='font-bold ml-1'>DH</span>
+                <span className='font-bold ml-1'>$</span>
                 <ChevronDown className="h-4 w-4 ml-1" />
               </Button>
             </div>

@@ -347,7 +347,7 @@ export default function AdminProductsPage() {
                                         />
                                     </TableCell>
                                     <TableCell className="font-medium">{product.name}</TableCell>
-                                    <TableCell>DH{product.price.toFixed(2)}</TableCell>
+                                    <TableCell>${product.price.toFixed(2)}</TableCell>
                                     <TableCell>{product.createdAt ? format(product.createdAt.toDate(), 'MMM d, yyyy') : 'N/A'}</TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>

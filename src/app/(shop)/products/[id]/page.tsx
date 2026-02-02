@@ -242,7 +242,7 @@ export default function ProductDetailPage() {
             </div>
 
             <p className="text-lg font-semibold my-4">
-              DH{product.price.toFixed(2)}
+              ${product.price.toFixed(2)}
             </p>
             <p className="text-xs text-muted-foreground">
               Incl. of taxes, excl. custom duties

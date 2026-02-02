@@ -195,7 +195,7 @@ export default function DiscountsPage() {
                                     <TableCell className="font-medium">{discount.name}</TableCell>
                                     <TableCell>{discount.code}</TableCell>
                                     <TableCell>{discount.type}</TableCell>
-                                    <TableCell>{discount.type === 'percentage' ? `${discount.value}%` : `DH${discount.value.toFixed(2)}`}</TableCell>
+                                    <TableCell>{discount.type === 'percentage' ? `${discount.value}%` : `$${discount.value.toFixed(2)}`}</TableCell>
                                     <TableCell>{discount.createdAt ? format(discount.createdAt.toDate(), 'MMM d, yyyy') : 'N/A'}</TableCell>
                                     <TableCell className="text-right">
                                          <DropdownMenu>
@@ -270,4 +270,3 @@ export default function DiscountsPage() {
         </div>
     );
 }
-    

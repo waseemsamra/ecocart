@@ -43,10 +43,10 @@ function ReadyToShipCard({ product, brand }: { product: Product; brand: Brand | 
         {brand && <p className="text-sm font-bold uppercase">{brand.name}</p>}
         <h3 className="font-semibold text-sm mt-1 group-hover:text-primary transition-colors leading-tight">{product.name}</h3>
         <div className="mt-1 flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-bold">DH{product.price.toFixed(2)}</p>
+            <p className="text-sm font-bold">${product.price.toFixed(2)}</p>
             {hasSale && (
                 <>
-                    <p className="text-sm text-muted-foreground line-through">DH{product.originalPrice!.toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground line-through">${product.originalPrice!.toFixed(2)}</p>
                     <p className="text-sm font-bold text-red-500">{discount}% OFF</p>
                 </>
             )}

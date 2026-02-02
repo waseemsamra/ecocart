@@ -60,7 +60,7 @@ export function ProductCard({ product, layout = 'grid', onClick }: ProductCardPr
                     <p className="text-sm text-muted-foreground line-clamp-3">{product.description}</p>
                 </div>
                  <div className="flex justify-between items-end mt-4">
-                    <p className="text-xl font-semibold">DH{product.price.toFixed(2)}</p>
+                    <p className="text-xl font-semibold">${product.price.toFixed(2)}</p>
                     <Button asChild variant="outline" size="sm">
                         <Link href={`/products/${product.id}`} onClick={onClick}>View Details <ArrowRight className="ml-2 h-4 w-4"/></Link>
                     </Button>
@@ -106,7 +106,7 @@ export function ProductCard({ product, layout = 'grid', onClick }: ProductCardPr
       </div>
       <div className="mt-4">
         <h3 className="font-headline font-semibold mt-1 group-hover:text-primary transition-colors">{product.name}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">from DH{product.price.toFixed(2)}</p>
+        <p className="mt-1 text-sm text-muted-foreground">from ${product.price.toFixed(2)}</p>
       </div>
     </Link>
   );

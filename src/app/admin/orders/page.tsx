@@ -160,7 +160,7 @@ export default function AdminOrdersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      DH{order.total.toFixed(2)}
+                      ${order.total.toFixed(2)}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -290,7 +290,7 @@ export default function AdminOrdersPage() {
                             Qty: {item.quantity}
                           </p>
                         </div>
-                        <p>DH{(item.price * item.quantity).toFixed(2)}</p>
+                        <p>${(item.price * item.quantity).toFixed(2)}</p>
                       </div>
                     ))}
                   </div>
@@ -298,7 +298,7 @@ export default function AdminOrdersPage() {
               </div>
               <div className="flex justify-between font-bold text-lg pt-4 border-t">
                 <span>Total:</span>
-                <span>DH{viewingOrder.total.toFixed(2)}</span>
+                <span>${viewingOrder.total.toFixed(2)}</span>
               </div>
             </>
           )}

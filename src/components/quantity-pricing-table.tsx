@@ -39,8 +39,8 @@ export function QuantityPricingTable({ onQuantityChange }: { onQuantityChange: (
               {tier.save > 0 && <Badge variant="secondary" className="bg-purple-100 text-purple-700">-{tier.save}%</Badge>}
             </div>
             <div className="text-right">
-              <p className="font-semibold text-sm">DH{tier.total.toFixed(2)}</p>
-              <p className="text-xs text-muted-foreground">DH{tier.pricePerUnit.toFixed(3)} / Unit</p>
+              <p className="font-semibold text-sm">${tier.total.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground">${tier.pricePerUnit.toFixed(3)} / Unit</p>
             </div>
           </Label>
         ))}

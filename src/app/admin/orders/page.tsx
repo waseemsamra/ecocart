@@ -259,6 +259,8 @@ export default function AdminOrdersPage() {
                     <br />
                     {viewingOrder.shippingDetails.email}
                     <br />
+                    {viewingOrder.shippingDetails.phone}
+                    <br />
                     {viewingOrder.shippingDetails.address},{' '}
                     {viewingOrder.shippingDetails.city},{' '}
                     {viewingOrder.shippingDetails.zip}

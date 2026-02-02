@@ -21,6 +21,7 @@ import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 const checkoutSchema = z.object({
   email: z.string().email(),
   name: z.string().min(2),
+  phone: z.string().min(5, { message: "A valid phone number is required." }),
   address: z.string().min(5),
   city: z.string().min(2),
   zip: z.string().min(4),
@@ -77,7 +78,7 @@ export default function CheckoutPage() {
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
-      email: '', name: '', address: '', city: '', zip: '', country: '',
+      email: '', name: '', address: '', city: '', zip: '', country: '', phone: '',
       paymentMethod: 'credit-card',
       cardName: '', cardNumber: '', expiryDate: '', cvc: '',
     },
@@ -109,12 +110,13 @@ export default function CheckoutPage() {
       shippingDetails: {
         name: data.name,
         email: data.email,
+        phone: data.phone,
         address: data.address,
         city: data.city,
         zip: data.zip,
         country: data.country,
       },
-      items: cartItems,
+      items: cartItems.map(item => ({...item, quantity: item.quantity || 1})), // Ensure quantity is set
       total: cartTotal,
       status: 'Processing' as const,
       createdAt: serverTimestamp(),
@@ -167,7 +169,10 @@ export default function CheckoutPage() {
                   <FormItem className="md:col-span-2"><FormLabel>Full Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="email" render={({ field }) => (
-                  <FormItem className="md:col-span-2"><FormLabel>Email</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>Email</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                 <FormField control={form.control} name="phone" render={({ field }) => (
+                  <FormItem><FormLabel>Phone</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="address" render={({ field }) => (
                   <FormItem className="md:col-span-2"><FormLabel>Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>

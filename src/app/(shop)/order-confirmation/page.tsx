@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 interface ShippingDetails {
   name: string;
   email: string;
+  phone: string;
   address: string;
   city: string;
   zip: string;
@@ -120,6 +121,8 @@ export default function OrderConfirmationPage() {
                 </CardHeader>
                 <CardContent className="space-y-2 text-muted-foreground">
                     <p className="font-semibold text-foreground">{order.shippingDetails.name}</p>
+                    <p>{order.shippingDetails.email}</p>
+                    <p>{order.shippingDetails.phone}</p>
                     <p>{order.shippingDetails.address}</p>
                     <p>{order.shippingDetails.city}, {order.shippingDetails.zip}</p>
                     <p>{order.shippingDetails.country}</p>

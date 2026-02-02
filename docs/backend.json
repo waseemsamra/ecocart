@@ -536,6 +536,9 @@
               "type": "string",
               "format": "email"
             },
+            "phone": {
+              "type": "string"
+            },
             "address": {
               "type": "string"
             },
@@ -552,6 +555,7 @@
           "required": [
             "name",
             "email",
+            "phone",
             "address",
             "city",
             "zip",

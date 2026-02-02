@@ -6,12 +6,21 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function Pagination({ currentPage, totalPages, onPageChange }: { currentPage: number, totalPages: number, onPageChange: (page: number) => void }) {
+    
+    const handlePageClick = (page: number) => {
+        if (page < 1 || page > totalPages) return;
+        onPageChange(page);
+        if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
     const handlePrevious = () => {
-        onPageChange(currentPage - 1);
+        handlePageClick(currentPage - 1);
     };
 
     const handleNext = () => {
-        onPageChange(currentPage + 1);
+        handlePageClick(currentPage + 1);
     };
 
     const paginationRange = useMemo(() => {
@@ -85,7 +94,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: { currentP
                         key={index}
                         variant={currentPage === pageNumber ? 'default' : 'outline'}
                         size="icon"
-                        onClick={() => onPageChange(pageNumber as number)}
+                        onClick={() => handlePageClick(pageNumber as number)}
                     >
                         {pageNumber}
                     </Button>

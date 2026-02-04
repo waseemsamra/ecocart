@@ -285,6 +285,7 @@ export default function AdminOrdersPage() {
                           width={48}
                           height={48}
                           className="rounded-md"
+                          unoptimized
                         />
                         <div className="flex-1">
                           <p>{item.name}</p>

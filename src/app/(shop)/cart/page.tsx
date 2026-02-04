@@ -55,7 +55,7 @@ export default function CartPage() {
                   {cartItems.map(item => (
                     <TableRow key={item.id}>
                       <TableCell className="hidden md:table-cell">
-                        <Image src={item.images?.[0]?.imageUrl || 'https://placehold.co/64x64'} alt={item.name} width={64} height={64} className="rounded-md" />
+                        <Image src={item.images?.[0]?.imageUrl || 'https://placehold.co/64x64'} alt={item.name} width={64} height={64} className="rounded-md" unoptimized />
                       </TableCell>
                       <TableCell>
                         <p className="font-medium">{item.name}</p>

@@ -98,7 +98,7 @@ export default function OrderConfirmationPage() {
                     {order.items.map(item => (
                         <div key={item.id} className="flex items-center gap-4">
                             <div className="relative h-16 w-16 rounded-md overflow-hidden bg-muted">
-                               <Image src={item.images?.[0]?.imageUrl || 'https://placehold.co/64x64'} alt={item.name} fill className="object-cover" />
+                               <Image src={item.images?.[0]?.imageUrl || 'https://placehold.co/64x64'} alt={item.name} fill className="object-cover" unoptimized />
                             </div>
                             <div className="flex-1">
                                 <p className="font-medium">{item.name}</p>

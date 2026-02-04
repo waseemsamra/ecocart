@@ -344,6 +344,7 @@ export default function AdminProductsPage() {
                                             height="64"
                                             src={product.images?.[0]?.imageUrl || 'https://placehold.co/64x64'}
                                             width="64"
+                                            unoptimized
                                         />
                                     </TableCell>
                                     <TableCell className="font-medium">{product.name}</TableCell>

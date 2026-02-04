@@ -55,6 +55,7 @@ import { useAuth } from '@/context/auth-context';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { slugify } from '@/lib/utils';
 
 export default function AdminProductsPage() {
     const { toast } = useToast();
@@ -92,9 +93,11 @@ export default function AdminProductsPage() {
         }
         try {
             const { id, createdAt, updatedAt, ...clonedData } = productToClone;
+            const newName = `${clonedData.name} (Copy)`;
             const newProductData = {
                 ...clonedData,
-                name: `${clonedData.name} (Copy)`,
+                name: newName,
+                slug: slugify(newName),
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
             };

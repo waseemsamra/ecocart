@@ -92,31 +92,21 @@ export default function DataUploadPage() {
       const productsRef = collection(db, 'products');
       const batch = writeBatch(db);
 
-      // Step 1: Get all unique brand names
-      const uniqueBrandNames = [...new Set(parsedData.map(p => p.brand.trim()).filter(Boolean))];
-      setLogs(prev => [...prev, `Found ${uniqueBrandNames.length} unique brands.`]);
+      // Step 1: Get all unique brand names from the file (case-insensitive)
+      const uniqueBrandNamesFromFile = [...new Set(parsedData.map(p => p.brand.trim()).filter(Boolean))];
+      setLogs(prev => [...prev, `Found ${uniqueBrandNamesFromFile.length} unique brands in the uploaded file.`]);
       
-      // Step 2: Check which brands already exist, handling Firestore's 30-item 'in' query limit.
-      const existingBrandsMap = new Map<string, string>();
-      if (uniqueBrandNames.length > 0) {
-        const chunks = [];
-        for (let i = 0; i < uniqueBrandNames.length; i += 30) {
-            chunks.push(uniqueBrandNames.slice(i, i + 30));
-        }
-
-        for (const chunk of chunks) {
-            const existingBrandsQuery = query(brandsRef, where('name', 'in', chunk));
-            const existingBrandsSnapshot = await getDocs(existingBrandsQuery);
-            existingBrandsSnapshot.docs.forEach(doc => {
-                existingBrandsMap.set(doc.data().name, doc.id);
-            });
-        }
-      }
+      // Step 2: Fetch all existing brands and create a case-insensitive map.
+      const existingBrandsMap = new Map<string, string>(); // Maps lowercase brand name -> brand ID
+      const allBrandsSnapshot = await getDocs(brandsRef);
+      allBrandsSnapshot.docs.forEach(doc => {
+          existingBrandsMap.set(doc.data().name.toLowerCase(), doc.id);
+      });
       setLogs(prev => [...prev, `Found ${existingBrandsMap.size} existing brands in the database.`]);
       
       // Step 3: Create new brands that don't exist
-      for (const brandName of uniqueBrandNames) {
-        if (!existingBrandsMap.has(brandName)) {
+      for (const brandName of uniqueBrandNamesFromFile) {
+        if (!existingBrandsMap.has(brandName.toLowerCase())) {
           const newBrandRef = doc(collection(db, 'brands'));
           batch.set(newBrandRef, {
             name: brandName,
@@ -124,19 +114,26 @@ export default function DataUploadPage() {
             description: '',
             createdAt: serverTimestamp(),
           });
-          existingBrandsMap.set(brandName, newBrandRef.id);
+          existingBrandsMap.set(brandName.toLowerCase(), newBrandRef.id);
           setLogs(prev => [...prev, `Prepared new brand "${brandName}" for creation.`]);
         }
       }
 
       // Step 4: Prepare product batch
       parsedData.forEach((productData, index) => {
-        const brandId = existingBrandsMap.get(productData.brand.trim());
+        const brandNameTrimmed = productData.brand.trim();
+        if (!brandNameTrimmed) {
+            setLogs(prev => [...prev, `[Row ${index + 2}] Skipping product "${productData.title}": Brand name is empty.`]);
+            return;
+        }
+        
+        const brandId = existingBrandsMap.get(brandNameTrimmed.toLowerCase());
         if (!brandId) {
-          setLogs(prev => [...prev, `[Row ${index + 2}] Skipping product "${productData.title}": Brand not found or empty.`]);
+          // This should technically not happen due to Step 3, but as a safeguard:
+          setLogs(prev => [...prev, `[Row ${index + 2}] Skipping product "${productData.title}": Could not find or create brand "${brandNameTrimmed}".`]);
           return;
         }
-
+        
         const price = parseFloat(String(productData.price).replace(/[^0-9.-]+/g,""));
         if (isNaN(price)) {
           setLogs(prev => [...prev, `[Row ${index + 2}] Skipping product "${productData.title}": Invalid price.`]);

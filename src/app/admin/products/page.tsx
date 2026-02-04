@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { collection, doc, deleteDoc, query, addDoc, serverTimestamp, writeBatch, getDocs } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useFirestore } from '@/firebase/provider';
-import type { Product } from '@/lib/types';
+import type { Product, Brand } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -76,15 +76,40 @@ export default function AdminProductsPage() {
     }, [db]);
 
     const { data: products, isLoading: isLoadingData, error } = useCollection<Product>(productsQuery);
-    const isLoading = authLoading || isLoadingData;
+    
+    const brandsQuery = useMemo(() => {
+        if (!db) return null;
+        const q = query(collection(db, 'brands'));
+        (q as any).__memo = true;
+        return q;
+    }, [db]);
+
+    const { data: brands, isLoading: isLoadingBrands } = useCollection<Brand>(brandsQuery);
+
+    const brandsMap = useMemo(() => {
+        if (!brands) return new Map<string, string>();
+        return new Map(brands.map(b => [b.id, b.name]));
+    }, [brands]);
+
+    const isLoading = authLoading || isLoadingData || isLoadingBrands;
 
     const filteredProducts = useMemo(() => {
         if (!products) return [];
         if (!searchTerm) return products;
-        return products.filter(product => 
-            product.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [products, searchTerm]);
+        const lowercasedSearchTerm = searchTerm.toLowerCase();
+
+        return products.filter(product => {
+            const nameMatch = product.name.toLowerCase().includes(lowercasedSearchTerm);
+            if (nameMatch) return true;
+
+            const brandMatch = product.brandIds?.some(brandId => {
+                const brandName = brandsMap.get(brandId);
+                return brandName?.toLowerCase().includes(lowercasedSearchTerm);
+            });
+            return brandMatch;
+        });
+    }, [products, searchTerm, brandsMap]);
+
 
     const handleCloneProduct = async (productToClone: Product) => {
         if (!db) {
@@ -301,7 +326,7 @@ export default function AdminProductsPage() {
                         <div className="relative w-full max-w-sm">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input 
-                                placeholder="Search products..."
+                                placeholder="Search products or brands..."
                                 className="pl-9"
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
@@ -322,15 +347,16 @@ export default function AdminProductsPage() {
                                 </TableHead>
                                 <TableHead className="hidden w-[100px] sm:table-cell">Image</TableHead>
                                 <TableHead>Name</TableHead>
+                                <TableHead>Brand</TableHead>
                                 <TableHead>Price</TableHead>
                                 <TableHead>Created At</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {isLoading && <TableRow><TableCell colSpan={6} className="h-24 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></TableCell></TableRow>}
-                            {!isLoading && error && <TableRow><TableCell colSpan={6} className="h-24 text-center text-red-500">{error.message}</TableCell></TableRow>}
-                            {!isLoading && filteredProducts?.length === 0 && <TableRow><TableCell colSpan={6} className="h-24 text-center">No products found.</TableCell></TableRow>}
+                            {isLoading && <TableRow><TableCell colSpan={7} className="h-24 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></TableCell></TableRow>}
+                            {!isLoading && error && <TableRow><TableCell colSpan={7} className="h-24 text-center text-red-500">{error.message}</TableCell></TableRow>}
+                            {!isLoading && filteredProducts?.length === 0 && <TableRow><TableCell colSpan={7} className="h-24 text-center">No products found.</TableCell></TableRow>}
                             {!isLoading && filteredProducts?.map((product) => (
                                 <TableRow key={product.id} data-state={selectedProductIds.includes(product.id) && 'selected'}>
                                     <TableCell>
@@ -351,6 +377,7 @@ export default function AdminProductsPage() {
                                         />
                                     </TableCell>
                                     <TableCell className="font-medium">{product.name}</TableCell>
+                                    <TableCell>{product.brandIds?.map(id => brandsMap.get(id)).filter(Boolean).join(', ') || 'N/A'}</TableCell>
                                     <TableCell>${product.price.toFixed(2)}</TableCell>
                                     <TableCell>{product.createdAt ? format(product.createdAt.toDate(), 'MMM d, yyyy') : 'N/A'}</TableCell>
                                     <TableCell className="text-right">

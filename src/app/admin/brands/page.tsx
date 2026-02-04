@@ -38,7 +38,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { MoreHorizontal, Edit, Trash2, PlusCircle, Loader2 } from 'lucide-react';
+import { MoreHorizontal, Edit, Trash2, PlusCircle, Loader2, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/context/auth-context';
@@ -109,6 +109,7 @@ export default function BrandsPage() {
     const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
     const [bulkAddText, setBulkAddText] = useState(initialBrandData);
     const [isBulkAdding, setIsBulkAdding] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const brandsQuery = useMemo(() => {
         if (!db) return null;
@@ -120,6 +121,14 @@ export default function BrandsPage() {
     const { data: brands, isLoading: isLoadingData, error } = useCollection<Brand>(brandsQuery);
     const isLoading = authLoading || isLoadingData;
     
+    const filteredBrands = useMemo(() => {
+        if (!brands) return [];
+        if (!searchTerm) return brands;
+        return brands.filter(brand => 
+            brand.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [brands, searchTerm]);
+
     useEffect(() => {
         if (dialogState.open && dialogState.brand) {
             setName(dialogState.brand.name || '');
@@ -252,8 +261,21 @@ export default function BrandsPage() {
             </div>
             <Card>
                 <CardHeader>
-                    <CardTitle>All Brands/Designers</CardTitle>
-                    <CardDescription>A list of all available brands and designers.</CardDescription>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle>All Brands/Designers</CardTitle>
+                            <CardDescription>A list of all available brands and designers.</CardDescription>
+                        </div>
+                        <div className="relative w-full max-w-sm">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                                placeholder="Search brands..."
+                                className="pl-9"
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -276,12 +298,12 @@ export default function BrandsPage() {
                                     <TableCell colSpan={4} className="text-center text-red-500">{error.message}</TableCell>
                                 </TableRow>
                             )}
-                            {!isLoading && brands?.length === 0 && (
+                            {!isLoading && filteredBrands?.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="h-24 text-center">No brands found. Add one to get started.</TableCell>
+                                    <TableCell colSpan={4} className="h-24 text-center">No brands found.</TableCell>
                                 </TableRow>
                             )}
-                            {!isLoading && brands?.map((brand) => (
+                            {!isLoading && filteredBrands?.map((brand) => (
                                 <TableRow key={brand.id}>
                                     <TableCell className="font-medium">{brand.name}</TableCell>
                                     <TableCell>{brand.description}</TableCell>

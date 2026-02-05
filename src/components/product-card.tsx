@@ -12,9 +12,25 @@ interface ProductCardProps {
   onClick?: (e: React.MouseEvent) => void;
 }
 
+const s3BaseUrl = 'https://ecocloths.s3.us-west-2.amazonaws.com';
+
 export function ProductCard({ product, layout = 'grid', onClick }: ProductCardProps) {
+  const getFullImageUrl = (url?: string): string | undefined => {
+    if (!url) {
+      return undefined;
+    }
+    if (url.startsWith('http') || url.startsWith('data:')) {
+      return url;
+    }
+    // Handles cases like '/path/to/image.jpg' and 'path/to/image.jpg'
+    return `${s3BaseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+  };
+
   const image = product.images?.[0];
   const hoverImage = product.images?.[1];
+
+  const imageUrl = getFullImageUrl(image?.imageUrl);
+  const hoverImageUrl = getFullImageUrl(hoverImage?.imageUrl);
   
   const productUrl = `/products/${product.slug || product.id}`;
 
@@ -23,26 +39,26 @@ export function ProductCard({ product, layout = 'grid', onClick }: ProductCardPr
         <Card className="flex flex-col md:flex-row overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl group">
              <Link href={productUrl} className="block md:w-1/3" onClick={onClick}>
                 <div className="aspect-square relative h-full">
-                    {image?.imageUrl ? (
+                    {imageUrl ? (
                          <>
                             <Image
-                                src={image.imageUrl}
-                                alt={image.description || product.name}
+                                src={imageUrl}
+                                alt={image?.description || product.name}
                                 fill
                                 className={cn(
                                     "object-cover object-top transition-opacity duration-300",
-                                    hoverImage?.imageUrl && "group-hover:opacity-0"
+                                    hoverImageUrl && "group-hover:opacity-0"
                                 )}
-                                data-ai-hint={image.imageHint}
+                                data-ai-hint={image?.imageHint}
                                 unoptimized
                             />
-                            {hoverImage?.imageUrl && (
+                            {hoverImageUrl && (
                                 <Image
-                                    src={hoverImage.imageUrl}
-                                    alt={hoverImage.description || product.name}
+                                    src={hoverImageUrl}
+                                    alt={hoverImage?.description || product.name}
                                     fill
                                     className="object-cover object-top opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                                    data-ai-hint={hoverImage.imageHint}
+                                    data-ai-hint={hoverImage?.imageHint}
                                     unoptimized
                                 />
                             )}
@@ -76,26 +92,26 @@ export function ProductCard({ product, layout = 'grid', onClick }: ProductCardPr
   return (
     <Link href={productUrl} className="group block" onClick={onClick}>
       <div className="relative overflow-hidden aspect-square rounded-xl bg-muted">
-        {image?.imageUrl ? (
+        {imageUrl ? (
             <>
                 <Image
-                    src={image.imageUrl}
-                    alt={image.description || product.name}
+                    src={imageUrl}
+                    alt={image?.description || product.name}
                     fill
                     className={cn(
                         "object-cover object-top transition-opacity duration-300",
-                        hoverImage?.imageUrl ? "group-hover:opacity-0" : "group-hover:scale-105"
+                        hoverImageUrl ? "group-hover:opacity-0" : "group-hover:scale-105"
                     )}
-                    data-ai-hint={image.imageHint}
+                    data-ai-hint={image?.imageHint}
                     unoptimized
                 />
-                {hoverImage?.imageUrl && (
+                {hoverImageUrl && (
                     <Image
-                        src={hoverImage.imageUrl}
-                        alt={hoverImage.description || product.name}
+                        src={hoverImageUrl}
+                        alt={hoverImage?.description || product.name}
                         fill
                         className="object-cover object-top opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-hover:scale-105"
-                        data-ai-hint={hoverImage.imageHint}
+                        data-ai-hint={hoverImage?.imageHint}
                         unoptimized
                     />
                 )}

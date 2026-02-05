@@ -323,6 +323,7 @@ export default function ProductDetailPage() {
                                             alt="Measuring guide diagram"
                                             fill
                                             className="object-contain"
+                                            unoptimized
                                         />
                                     </div>
                                 ) : (

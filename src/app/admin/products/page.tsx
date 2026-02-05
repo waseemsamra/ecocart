@@ -57,6 +57,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { slugify } from '@/lib/utils';
 
+const s3BaseUrl = 'https://ecocloths.s3.us-west-2.amazonaws.com';
+
 export default function AdminProductsPage() {
     const { toast } = useToast();
     const db = useFirestore();
@@ -67,6 +69,16 @@ export default function AdminProductsPage() {
     const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
     const [bulkAddText, setBulkAddText] = useState('');
     const [isBulkAdding, setIsBulkAdding] = useState(false);
+
+    const getFullImageUrl = (url?: string): string => {
+        if (!url) {
+            return 'https://placehold.co/64x64'; // Fallback
+        }
+        if (url.startsWith('http') || url.startsWith('data:')) {
+            return url;
+        }
+        return `${s3BaseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+    };
     
     const productsQuery = useMemo(() => {
         if (!db) return null;
@@ -371,9 +383,10 @@ export default function AdminProductsPage() {
                                             alt={product.name}
                                             className="aspect-square rounded-md object-cover"
                                             height="64"
-                                            src={product.images?.[0]?.imageUrl || 'https://placehold.co/64x64'}
+                                            src={getFullImageUrl(product.images?.[0]?.imageUrl)}
                                             width="64"
                                             unoptimized
+                                            loading="lazy"
                                         />
                                     </TableCell>
                                     <TableCell className="font-medium">{product.name}</TableCell>

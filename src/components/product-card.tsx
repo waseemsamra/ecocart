@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Product } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { cn, slugify } from '@/lib/utils';
+import { cn, slugify, getFullImageUrl } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
 
 interface ProductCardProps {
@@ -12,20 +12,7 @@ interface ProductCardProps {
   onClick?: (e: React.MouseEvent) => void;
 }
 
-const s3BaseUrl = 'https://ecocloths.s3.us-west-2.amazonaws.com';
-
 export function ProductCard({ product, layout = 'grid', onClick }: ProductCardProps) {
-  const getFullImageUrl = (url?: string): string | undefined => {
-    if (!url) {
-      return undefined;
-    }
-    if (url.startsWith('http') || url.startsWith('data:')) {
-      return url;
-    }
-    // Handles cases like '/path/to/image.jpg' and 'path/to/image.jpg'
-    return `${s3BaseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
-  };
-
   const image = product.images?.[0];
   const hoverImage = product.images?.[1];
 

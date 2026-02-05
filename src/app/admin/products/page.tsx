@@ -56,9 +56,7 @@ import { useAuth } from '@/context/auth-context';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { slugify } from '@/lib/utils';
-
-const s3BaseUrl = 'https://ecocloths.s3.us-west-2.amazonaws.com';
+import { slugify, getFullImageUrl } from '@/lib/utils';
 
 export default function AdminProductsPage() {
     const { toast } = useToast();
@@ -71,18 +69,6 @@ export default function AdminProductsPage() {
     const [bulkAddText, setBulkAddText] = useState('');
     const [isBulkAdding, setIsBulkAdding] = useState(false);
 
-    const getFullImageUrl = (url?: string): string => {
-        if (!url) {
-            return 'https://placehold.co/64x64'; // Fallback
-        }
-        const trimmedUrl = url.trim();
-        if (trimmedUrl.startsWith('http') || trimmedUrl.startsWith('data:')) {
-            return trimmedUrl;
-        }
-        // Handles cases like '/path/to/image.jpg' and 'path/to/image.jpg'
-        return `${s3BaseUrl}${trimmedUrl.startsWith('/') ? '' : '/'}${trimmedUrl}`;
-    };
-    
     const productsQuery = useMemo(() => {
         if (!db) return null;
         const q = query(collection(db, 'products'));
@@ -386,7 +372,7 @@ export default function AdminProductsPage() {
                                             alt={product.name}
                                             className="aspect-square rounded-md object-cover"
                                             height="64"
-                                            src={getFullImageUrl(product.images?.[0]?.imageUrl)}
+                                            src={getFullImageUrl(product.images?.[0]?.imageUrl) || 'https://placehold.co/64x64'}
                                             width="64"
                                             unoptimized
                                             loading="lazy"

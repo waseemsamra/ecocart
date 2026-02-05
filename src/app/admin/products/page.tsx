@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -74,10 +75,12 @@ export default function AdminProductsPage() {
         if (!url) {
             return 'https://placehold.co/64x64'; // Fallback
         }
-        if (url.startsWith('http') || url.startsWith('data:')) {
-            return url;
+        const trimmedUrl = url.trim();
+        if (trimmedUrl.startsWith('http') || trimmedUrl.startsWith('data:')) {
+            return trimmedUrl;
         }
-        return `${s3BaseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+        // Handles cases like '/path/to/image.jpg' and 'path/to/image.jpg'
+        return `${s3BaseUrl}${trimmedUrl.startsWith('/') ? '' : '/'}${trimmedUrl}`;
     };
     
     const productsQuery = useMemo(() => {

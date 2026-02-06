@@ -1,20 +1,44 @@
 import { NextResponse } from 'next/server';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+
+const { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_BUCKET_NAME } = process.env;
+
+// Initialize the S3 client, but only if the credentials are all present.
+let s3Client: S3Client | null = null;
+if (AWS_REGION && AWS_ACCESS_KEY_ID && AWS_SECRET_ACCESS_KEY) {
+    s3Client = new S3Client({
+        region: AWS_REGION,
+        credentials: {
+            accessKeyId: AWS_ACCESS_KEY_ID,
+            secretAccessKey: AWS_SECRET_ACCESS_KEY,
+        }
+    });
+}
+
+async function uploadToS3(buffer: Buffer, fileName: string, contentType: string): Promise<string> {
+    if (!s3Client || !AWS_S3_BUCKET_NAME) {
+        throw new Error("S3 client is not configured. Check server environment variables.");
+    }
+    
+    const key = `uploads/${Date.now()}-${fileName.replace(/\s+/g, '-')}`;
+
+    const command = new PutObjectCommand({
+        Bucket: AWS_S3_BUCKET_NAME,
+        Key: key,
+        Body: buffer,
+        ContentType: contentType,
+    });
+
+    await s3Client.send(command);
+
+    return `https://${AWS_S3_BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key}`;
+}
 
 export async function POST(request: Request) {
-  // THIS IS A MOCK/PLACEHOLDER IMPLEMENTATION.
-  // The client-side code calls this endpoint to upload an image and get a public URL back.
-  // This endpoint now supports two modes:
-  // 1. `multipart/form-data`: For direct file uploads from a user's computer.
-  // 2. `application/json`: For fetching an image from an external URL.
-  //
-  // In a real implementation, you would replace the placeholder logic with your actual
-  // AWS S3 upload logic. This would involve:
-  // 1. If you haven't, install the AWS SDK: `npm install @aws-sdk/client-s3`
-  // 2. Configure it with your AWS credentials (using environment variables is recommended).
-  // 3. Get the image data (either from the form data or by fetching the external URL).
-  // 4. Upload the image data/buffer to your S3 bucket.
-  // 5. Return the public URL of the uploaded file in the JSON response, e.g., `{ "url": "https://your-bucket.s3.amazonaws.com/image-name.jpg" }`.
-
+  if (!s3Client || !AWS_S3_BUCKET_NAME) {
+    return NextResponse.json({ error: 'AWS S3 is not configured on the server. Please check your environment variables.' }, { status: 500 });
+  }
+  
   try {
     const contentType = request.headers.get('content-type') || '';
 
@@ -26,11 +50,11 @@ export async function POST(request: Request) {
       if (!file) {
         return NextResponse.json({ error: 'No file provided in form data.' }, { status: 400 });
       }
+
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const s3Url = await uploadToS3(buffer, file.name, file.type);
       
-      // MOCK LOGIC: In a real scenario, you'd upload `file` to S3 here.
-      // We'll return a placeholder URL that looks like a real S3 URL.
-      const mockS3Url = `https://ecocloths.s3.us-west-2.amazonaws.com/uploads/${Date.now()}-${file.name}`;
-      return NextResponse.json({ url: mockS3Url });
+      return NextResponse.json({ url: s3Url });
     }
 
     // CASE 2: Client sends a URL to be fetched
@@ -42,16 +66,19 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'A valid public URL must be provided in the JSON body.' }, { status: 400 });
       }
 
-      // MOCK LOGIC: In a real scenario, you would fetch the image and upload the buffer to S3.
-      // For example:
-      // const imageResponse = await fetch(imageUrl);
-      // if (!imageResponse.ok) throw new Error(`Failed to fetch image from ${imageUrl}`);
-      // const imageBuffer = await imageResponse.arrayBuffer();
-      // await s3.putObject({ Bucket: 'your-bucket', Key: `imported/${Date.now()}.jpg`, Body: Buffer.from(imageBuffer) });
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) {
+          throw new Error(`Failed to fetch image from ${imageUrl}. Status: ${imageResponse.status}`);
+      }
+      
+      const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+      const fetchedContentType = imageResponse.headers.get('content-type') || 'application/octet-stream';
+      // Try to get a reasonable file name from the URL
+      const fileName = new URL(imageUrl).pathname.split('/').pop() || 'external-image';
 
-      // We'll just return a placeholder URL that looks like a real S3 URL for an imported file.
-      const mockS3Url = `https://ecocloths.s3.us-west-2.amazonaws.com/imported/${Date.now()}.jpg`;
-      return NextResponse.json({ url: mockS3Url });
+      const s3Url = await uploadToS3(imageBuffer, fileName, fetchedContentType);
+
+      return NextResponse.json({ url: s3Url });
     }
 
     // If content type is not supported

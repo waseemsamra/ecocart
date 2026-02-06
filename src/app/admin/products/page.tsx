@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -141,8 +140,19 @@ export default function AdminProductsPage() {
             return;
         }
         try {
-            const deletePromises = selectedProductIds.map(id => deleteDoc(doc(db, 'products', id)));
-            await Promise.all(deletePromises);
+            // Firestore batches are limited to 500 operations.
+            // To handle more, we need to chunk the deletions.
+            const batchSize = 500;
+            for (let i = 0; i < selectedProductIds.length; i += batchSize) {
+                const batch = writeBatch(db);
+                const chunk = selectedProductIds.slice(i, i + batchSize);
+                chunk.forEach(id => {
+                    const docRef = doc(db, 'products', id);
+                    batch.delete(docRef);
+                });
+                await batch.commit();
+            }
+
             toast({
                 title: `${selectedProductIds.length} product(s) deleted.`,
                 description: 'The selected products have been removed from the database.',

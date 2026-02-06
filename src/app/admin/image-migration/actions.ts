@@ -43,6 +43,9 @@ export async function getProductsToMigrate(): Promise<{ products: ProductToMigra
         return { products: productsToMigrate };
     } catch (e: any) {
         console.error("Error fetching products for migration:", e);
+        if (e.code === 'permission-denied' || e.code === 7) {
+             return { products: [], error: "Permission Denied: The server cannot access Firestore. Ensure your service account has the 'Cloud Datastore User' role." };
+        }
         return { products: [], error: e.message };
     }
 }

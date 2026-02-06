@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
-import { collection, getDocs, addDoc, writeBatch, serverTimestamp, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, writeBatch, serverTimestamp, doc, query, where, limit } from 'firebase/firestore';
 import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, Upload, FileCheck2, AlertTriangle, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Loader2, Upload, FileCheck2, AlertTriangle, CheckCircle, XCircle, Clock, Info } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { slugify } from '@/lib/utils';
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
@@ -23,7 +23,7 @@ interface ParsedProduct {
   price: string;
 }
 
-type ProductStatus = 'pending' | 'processing' | 'success' | 'error';
+type ProductStatus = 'pending' | 'processing' | 'success' | 'error' | 'skipped';
 interface ParsedProductWithStatus extends ParsedProduct {
     status: ProductStatus;
     message: string;
@@ -144,6 +144,17 @@ export default function DataUploadPage() {
             const brandId = existingBrandsMap.get(brandNameTrimmed.toLowerCase());
             if (!brandId) throw new Error(`Brand "${brandNameTrimmed}" not found.`);
 
+            // Check for existing product to prevent duplicates
+            updateProductStatus(i, 'processing', 'Checking for duplicates...');
+            const productsRef = collection(db, 'products');
+            const q = query(productsRef, where('name', '==', productData.title), where('brandIds', 'array-contains', brandId), limit(1));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                updateProductStatus(i, 'skipped', 'Skipped: Product already exists.');
+                continue; // Skip to the next product
+            }
+
             const price = parseFloat(String(productData.price).replace(/[^0-9.-]+/g,""));
             if (isNaN(price)) throw new Error("Invalid price format.");
 
@@ -210,6 +221,7 @@ export default function DataUploadPage() {
         case 'processing': return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
         case 'success': return <CheckCircle className="h-4 w-4 text-green-500" />;
         case 'error': return <XCircle className="h-4 w-4 text-red-500" />;
+        case 'skipped': return <Info className="h-4 w-4 text-gray-500" />;
     }
   }
 
@@ -255,7 +267,7 @@ export default function DataUploadPage() {
                       <TableCell className="text-center">{renderStatusIcon(row.status)}</TableCell>
                       <TableCell>{row.brand}</TableCell>
                       <TableCell>{row.title}</TableCell>
-                      <TableCell className={`text-sm ${row.status === 'error' ? 'text-red-500' : 'text-muted-foreground'}`}>{row.message}</TableCell>
+                      <TableCell className={`text-sm ${row.status === 'error' ? 'text-red-500' : row.status === 'skipped' ? 'text-gray-500' : 'text-muted-foreground'}`}>{row.message}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

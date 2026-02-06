@@ -54,7 +54,6 @@ export default function ImageMigrationPage() {
         
         // We only want to process products that are still pending
         const productsToProcess = products.filter(p => p.status === 'pending');
-        let currentProcessedCount = 0;
 
         for (const product of productsToProcess) {
             if (isStoppingRef.current) {
@@ -70,7 +69,6 @@ export default function ImageMigrationPage() {
             } catch (e: any) {
                 setProducts(prev => prev.map(p => p.id === product.id ? { ...p, status: 'error', message: e.message } : p));
             }
-            currentProcessedCount++;
             setProcessedCount(prev => prev + 1);
         }
 
@@ -116,15 +114,15 @@ export default function ImageMigrationPage() {
                 <CardHeader>
                     <CardTitle>Migration Control</CardTitle>
                     <CardDescription>
-                        Step 1: Fetch products with external images. Step 2: Start the migration. You can stop the process at any time.
+                        Step 1: Fetch products with external images. Clicking again will restart the list. Step 2: Start the migration.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex items-center gap-4">
                     <Button onClick={handleFetch} disabled={status === 'fetching' || status === 'migrating'}>
                         {status === 'fetching' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Step 1: Fetch Products
+                        {products.length > 0 ? 'Re-fetch Product List' : 'Step 1: Fetch Products'}
                     </Button>
-                    <Button onClick={handleMigrate} disabled={status === 'fetching' || status === 'migrating' || (status === 'complete' && products.every(p => p.status !== 'pending'))}>
+                    <Button onClick={handleMigrate} disabled={status === 'fetching' || status === 'migrating' || (status !== 'ready' && status !== 'stopped') || products.filter(p => p.status === 'pending').length === 0}>
                         {status === 'migrating' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Step 2: Start/Resume Migration
                     </Button>

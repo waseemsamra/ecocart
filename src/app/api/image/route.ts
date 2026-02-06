@@ -17,7 +17,7 @@ try {
     if (!AWS_S3_BUCKET_NAME) missingVars.push('AWS_S3_BUCKET_NAME');
 
     if (missingVars.length > 0) {
-        throw new Error(`The following environment variables are missing from your .env.local file: ${missingVars.join(', ')}.`);
+        throw new Error(`The following environment variables are missing from your .env.local file: ${missingVars.join(', ')}. Please ensure this file exists in the root of your project and restart the server.`);
     }
 
     s3Client = new S3Client({
@@ -37,9 +37,9 @@ try {
 
 async function uploadToS3(buffer: Buffer, fileName: string, contentType: string): Promise<string> {
     // This function will now be called inside the POST handler, where we can check s3Client
-    if (!s3Client || !AWS_S3_BUCKET_NAME) {
+    if (!s3Client || !AWS_S3_BUCKET_NAME || !AWS_REGION) {
          // This re-uses the error from initialization time.
-        throw new Error(s3Error || "S3 client is not configured. Check server environment variables.");
+        throw new Error(s3Error || "S3 client is not configured. Check server environment variables and restart the server.");
     }
     
     const key = `uploads/${Date.now()}-${fileName.replace(/\s+/g, '-')}`;
@@ -55,9 +55,11 @@ async function uploadToS3(buffer: Buffer, fileName: string, contentType: string)
 
     try {
         await s3Client.send(command);
-        const region = await s3Client.config.region();
-        const url = `https://${AWS_S3_BUCKET_NAME}.s3.${region}.amazonaws.com/${key}`;
-        console.log("[S3 UPLOAD] Successfully uploaded. Generated URL:", url);
+        // The AWS_REGION is already confirmed to be present at the start of the file.
+        // We construct the URL directly using it for consistency.
+        const url = `https://${AWS_S3_BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key}`;
+        console.log(`[S3 UPLOAD] SDK send command successful.`);
+        console.log(`[S3 UPLOAD] Generated URL: ${url}`);
         return url;
 
     } catch (error) {

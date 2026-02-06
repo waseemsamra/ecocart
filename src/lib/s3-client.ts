@@ -42,17 +42,18 @@ export async function uploadToS3(
         throw new Error(s3Error || "S3 client is not configured. Check server environment variables.");
     }
     
-    const { brandName, productName } = options;
-    const safeOriginalFileName = slugify(fileName.split('.').slice(0, -1).join('.')).slice(0, 50);
-    const extension = fileName.split('.').pop() || 'jpg';
+    const { brandName } = options;
+    const extension = fileName.split('.').pop()?.toLowerCase() || 'jpg';
+    const timestamp = Date.now();
     let key: string;
 
     if (brandName) {
         const brandSlug = slugify(brandName);
-        const productSlug = productName ? slugify(productName) : 'image';
-        key = `uploads/brands/${brandSlug}-${productSlug}-${Date.now()}.${extension}`;
+        key = `uploads/brands/${brandSlug}-${timestamp}.${extension}`;
     } else {
-        key = `uploads/${Date.now()}-${safeOriginalFileName}.${extension}`;
+        // Fallback for uploads without a brand context, like a store logo
+        const safeOriginalFileName = slugify(fileName.split('.').slice(0, -1).join('.')).slice(0, 50);
+        key = `uploads/${timestamp}-${safeOriginalFileName}.${extension}`;
     }
 
     const command = new PutObjectCommand({
@@ -64,10 +65,8 @@ export async function uploadToS3(
     
     try {
         const region = await s3Client.config.region();
-        console.log(`[S3 UPLOAD] Attempting to upload to bucket: ${AWS_S3_BUCKET_NAME}, Region: ${region}, Key: ${key}`);
         await s3Client.send(command);
         const url = `https://${AWS_S3_BUCKET_NAME}.s3.${region}.amazonaws.com/${key}`;
-        console.log(`[S3 UPLOAD] Successfully generated S3 URL: ${url}`);
         return url;
     } catch (error) {
         console.error("[S3 UPLOAD] SDK send command failed:", error);

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
-import { collection, getDocs, addDoc, writeBatch, serverTimestamp, doc, query, where, limit } from 'firebase/firestore';
+import { collection, getDocs, addDoc, writeBatch, serverTimestamp, doc, query, where, limit, setDoc } from 'firebase/firestore';
 import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -122,6 +122,7 @@ export default function DataUploadPage() {
     setLogs(prev => [...prev, 'Brand setup complete. Starting product uploads.']);
 
     // Step 2: Process products one by one
+    const productsRef = collection(db, 'products');
     for (let i = 0; i < products.length; i++) {
         let productData = products[i];
 
@@ -146,12 +147,12 @@ export default function DataUploadPage() {
 
             // Check for existing product to prevent duplicates
             updateProductStatus(i, 'processing', 'Checking for duplicates...');
-            const productsRef = collection(db, 'products');
             const q = query(productsRef, where('name', '==', productData.title), where('brandIds', 'array-contains', brandId), limit(1));
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
                 updateProductStatus(i, 'skipped', 'Skipped: Product already exists.');
+                setProcessedCount(prev => prev + 1);
                 continue; // Skip to the next product
             }
 
@@ -185,7 +186,7 @@ export default function DataUploadPage() {
 
             // Save product to Firestore
             updateProductStatus(i, 'processing', 'Saving to database...');
-            const newProductRef = doc(collection(db, 'products'));
+            const newProductRef = doc(productsRef);
             const productDocData = {
                 name: productData.title,
                 slug: slugify(productData.title),
@@ -200,12 +201,12 @@ export default function DataUploadPage() {
                 showInModernMustHaves: false, packagingPartnerTags: [], productCode: '', fit: '',
                 composition: '', care: '', createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
             };
-            await addDoc(collection(db, 'products'), productDocData);
+            await setDoc(newProductRef, productDocData);
             
             updateProductStatus(i, 'success', 'Success!');
+            setProcessedCount(prev => prev + 1);
         } catch (e: any) {
             updateProductStatus(i, 'error', e.message);
-        } finally {
             setProcessedCount(prev => prev + 1);
         }
     }

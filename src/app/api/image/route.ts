@@ -19,7 +19,7 @@ try {
     if (!AWS_S3_BUCKET_NAME) missingVars.push('AWS_S3_BUCKET_NAME');
 
     if (missingVars.length > 0) {
-        throw new Error(`The following environment variables are missing from your .env file: ${missingVars.join(', ')}. Please add them and restart the server.`);
+        throw new Error(`The following environment variables are missing from your .env.local file: ${missingVars.join(', ')}. Please add them and restart the server.`);
     }
 
     console.log(`[S3 INIT] All credentials found. Region: ${AWS_REGION}, Bucket: ${AWS_S3_BUCKET_NAME}`);
@@ -47,13 +47,9 @@ async function uploadToS3(buffer: Buffer, fileName: string, contentType: string,
     const originalFileName = fileName.replace(/\s+/g, '-');
     let keyPath = 'uploads'; // Default path
 
+    // All brand-related images will go into a single 'brands' folder.
     if (brandName) {
-        const brandSlug = slugify(brandName);
-        keyPath += `/brands/${brandSlug}`;
-        if (productName) {
-            const productSlug = slugify(productName);
-            keyPath += `/${productSlug}`;
-        }
+        keyPath += `/brands`;
     }
 
     // Using a timestamp to ensure uniqueness, which is more robust than a simple index.
@@ -70,7 +66,7 @@ async function uploadToS3(buffer: Buffer, fileName: string, contentType: string,
 
     try {
         await s3Client.send(command);
-        const url = `https://${AWS_S3_BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key}`;
+        const url = `https://${AWS_S3_BUCKET_NAME}.s3.${s3Client.config.region}.amazonaws.com/${key}`;
         console.log(`[S3 UPLOAD] SDK send command successful. Generated URL: ${url}`);
         return url;
     } catch (error) {

@@ -279,7 +279,6 @@ export function ProductForm({ product }: { product?: Product }) {
                     const formData = new FormData();
                     formData.append('file', file);
                     
-                    // Add context for better S3 pathing
                     const productName = data.name;
                     const brandId = data.brandIds?.[0];
                     const brand = brandId ? optionData.brands.find(b => b.id === brandId) : null;

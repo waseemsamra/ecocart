@@ -83,7 +83,7 @@ export async function migrateImagesForProduct(productId: string, brandName: stri
                     const contentType = response.headers.get('content-type') || 'image/jpeg';
                     const fileName = image.imageUrl.split('/').pop() || `${product.id}-${i}.jpg`;
                     
-                    const newUrl = await uploadToS3(buffer, fileName, contentType, brandName);
+                    const newUrl = await uploadToS3(buffer, fileName, contentType, { brandName, productName: product.name });
                     newImages[i].imageUrl = newUrl;
                     migratedCount++;
                 } catch (fetchError: any) {

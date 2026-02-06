@@ -3,16 +3,17 @@
 import { useState } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
-import { collection, query, where, getDocs, addDoc, writeBatch, serverTimestamp, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, writeBatch, serverTimestamp, doc } from 'firebase/firestore';
 import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, Upload, FileCheck2, AlertTriangle } from 'lucide-react';
+import { Loader2, Upload, FileCheck2, AlertTriangle, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { slugify } from '@/lib/utils';
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
+import { Progress } from '@/components/ui/progress';
 
 interface ParsedProduct {
   brand: string;
@@ -22,19 +23,27 @@ interface ParsedProduct {
   price: string;
 }
 
+type ProductStatus = 'pending' | 'processing' | 'success' | 'error';
+interface ParsedProductWithStatus extends ParsedProduct {
+    status: ProductStatus;
+    message: string;
+}
+
 export default function DataUploadPage() {
-  const [parsedData, setParsedData] = useState<ParsedProduct[]>([]);
+  const [products, setProducts] = useState<ParsedProductWithStatus[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processedCount, setProcessedCount] = useState(0);
   const db = useFirestore();
   const { toast } = useToast();
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    
     setLogs(['Reading file...']);
-    setParsedData([]);
+    setProducts([]);
+    setProcessedCount(0);
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -43,7 +52,6 @@ export default function DataUploadPage() {
         const workbook = XLSX.read(data, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        // Using `header: 1` to get array of arrays, then mapping to object
         const rows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
         
         if (rows.length < 2) {
@@ -51,17 +59,18 @@ export default function DataUploadPage() {
           return;
         }
 
-        // Assuming headers are: brands, Front-pic, Hover-pic, Product-title, price
-        const products: ParsedProduct[] = rows.slice(1).map((row) => ({
+        const productsWithStatus: ParsedProductWithStatus[] = rows.slice(1).map((row) => ({
           brand: row[0] || '',
           frontPic: row[1] || '',
           hoverPic: row[2] || '',
           title: row[3] || '',
           price: String(row[4] || '0'),
+          status: 'pending',
+          message: 'Waiting...'
         }));
         
-        setParsedData(products);
-        setLogs(prev => [...prev, `Successfully parsed ${products.length} products from the file.`]);
+        setProducts(productsWithStatus);
+        setLogs(prev => [...prev, `Successfully parsed ${productsWithStatus.length} products from the file.`]);
       } catch (error: any) {
         setLogs(prev => [...prev, `Error parsing file: ${error.message}`]);
         toast({
@@ -79,134 +88,130 @@ export default function DataUploadPage() {
       toast({ variant: 'destructive', title: 'Error', description: 'Database not connected.' });
       return;
     }
-    if (parsedData.length === 0) {
+    if (products.length === 0) {
       toast({ variant: 'destructive', title: 'No Data', description: 'No data to upload.' });
       return;
     }
 
     setIsProcessing(true);
     setLogs(['Starting upload process...']);
-
-    try {
-      const brandsRef = collection(db, 'brands');
-      const productsRef = collection(db, 'products');
-      const batch = writeBatch(db);
-
-      // Step 1: Get all unique brand names from the file (case-insensitive)
-      const uniqueBrandNamesFromFile = [...new Set(parsedData.map(p => p.brand.trim()).filter(Boolean))];
-      setLogs(prev => [...prev, `Found ${uniqueBrandNamesFromFile.length} unique brands in the uploaded file.`]);
-      
-      // Step 2: Fetch all existing brands and create a case-insensitive map.
-      const existingBrandsMap = new Map<string, string>(); // Maps lowercase brand name -> brand ID
-      const allBrandsSnapshot = await getDocs(brandsRef);
-      allBrandsSnapshot.docs.forEach(doc => {
-          existingBrandsMap.set(doc.data().name.toLowerCase(), doc.id);
-      });
-      setLogs(prev => [...prev, `Found ${existingBrandsMap.size} existing brands in the database.`]);
-      
-      // Step 3: Create new brands that don't exist
-      for (const brandName of uniqueBrandNamesFromFile) {
-        if (!existingBrandsMap.has(brandName.toLowerCase())) {
-          const newBrandRef = doc(collection(db, 'brands'));
-          batch.set(newBrandRef, {
-            name: brandName,
-            slug: slugify(brandName),
-            description: '',
-            createdAt: serverTimestamp(),
-          });
-          existingBrandsMap.set(brandName.toLowerCase(), newBrandRef.id);
-          setLogs(prev => [...prev, `Prepared new brand "${brandName}" for creation.`]);
-        }
-      }
-
-      // Step 4: Prepare product batch
-      parsedData.forEach((productData, index) => {
-        const brandNameTrimmed = productData.brand.trim();
-        if (!brandNameTrimmed) {
-            setLogs(prev => [...prev, `[Row ${index + 2}] Skipping product "${productData.title}": Brand name is empty.`]);
-            return;
-        }
-        
-        const brandId = existingBrandsMap.get(brandNameTrimmed.toLowerCase());
-        if (!brandId) {
-          // This should technically not happen due to Step 3, but as a safeguard:
-          setLogs(prev => [...prev, `[Row ${index + 2}] Skipping product "${productData.title}": Could not find or create brand "${brandNameTrimmed}".`]);
-          return;
-        }
-        
-        const price = parseFloat(String(productData.price).replace(/[^0-9.-]+/g,""));
-        if (isNaN(price)) {
-          setLogs(prev => [...prev, `[Row ${index + 2}] Skipping product "${productData.title}": Invalid price.`]);
-          return;
-        }
-        
-        const costPrice = price * (1 - 0.35);
-
-        const images: Omit<ImagePlaceholder, 'id'>[] = [];
-        if (productData.frontPic) {
-            images.push({ imageUrl: productData.frontPic, description: 'Front View', imageHint: 'front view' });
-        }
-        if (productData.hoverPic) {
-            images.push({ imageUrl: productData.hoverPic, description: 'Hover View', imageHint: 'hover view' });
-        }
-
-        const newProductRef = doc(collection(db, 'products'));
-        batch.set(newProductRef, {
-          name: productData.title,
-          slug: slugify(productData.title),
-          price: price,
-          costPrice: costPrice,
-          description: '',
-          brandIds: [brandId],
-          images: images.map((img, idx) => ({ ...img, id: `${newProductRef.id}_${idx}` })),
-          materials: [],
-          certifications: [],
-          sustainabilityImpact: '',
-          categoryIds: [],
-          sizeIds: [],
-          colourIds: [],
-          materialTypeIds: [],
-          finishTypeIds: [],
-          adhesiveIds: [],
-          handleIds: [],
-          shapeIds: [],
-          lidIds: [],
-          showInWeddingTales: false,
-          showInDesignersOnDiscount: false,
-          showInModernMustHaves: false,
-          packagingPartnerTags: [],
-          productCode: '',
-          fit: '',
-          composition: '',
-          care: '',
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
+    setProcessedCount(0);
+    
+    // Step 1: Handle brands
+    const brandsRef = collection(db, 'brands');
+    const uniqueBrandNamesFromFile = [...new Set(products.map(p => p.brand.trim()).filter(Boolean))];
+    const existingBrandsMap = new Map<string, string>();
+    const allBrandsSnapshot = await getDocs(brandsRef);
+    allBrandsSnapshot.docs.forEach(doc => {
+        existingBrandsMap.set(doc.data().name.toLowerCase(), doc.id);
+    });
+    setLogs(prev => [...prev, `Found ${existingBrandsMap.size} existing brands.`]);
+    
+    const brandBatch = writeBatch(db);
+    for (const brandName of uniqueBrandNamesFromFile) {
+      if (!existingBrandsMap.has(brandName.toLowerCase())) {
+        const newBrandRef = doc(brandsRef);
+        brandBatch.set(newBrandRef, {
+          name: brandName, slug: slugify(brandName), description: '', createdAt: serverTimestamp(),
         });
-        setLogs(prev => [...prev, `[Row ${index + 2}] Prepared product "${productData.title}" for creation.`]);
-      });
-      
-      // Step 5: Commit batch
-      setLogs(prev => [...prev, 'Committing all changes to the database...']);
-      await batch.commit();
-
-      toast({
-        title: 'Upload Complete',
-        description: `${parsedData.length} products have been processed.`,
-      });
-      setLogs(prev => [...prev, 'Upload complete!']);
-
-    } catch (error: any) {
-      console.error(error);
-      toast({
-        variant: 'destructive',
-        title: 'Upload Failed',
-        description: error.message,
-      });
-      setLogs(prev => [...prev, `Error during upload: ${error.message}`]);
-    } finally {
-      setIsProcessing(false);
+        existingBrandsMap.set(brandName.toLowerCase(), newBrandRef.id);
+        setLogs(prev => [...prev, `Preparing new brand "${brandName}".`]);
+      }
     }
+    await brandBatch.commit();
+    setLogs(prev => [...prev, 'Brand setup complete. Starting product uploads.']);
+
+    // Step 2: Process products one by one
+    for (let i = 0; i < products.length; i++) {
+        let productData = products[i];
+
+        const updateProductStatus = (index: number, status: ProductStatus, message: string) => {
+            setProducts(prev => {
+                const newProducts = [...prev];
+                if (newProducts[index]) {
+                    newProducts[index] = { ...newProducts[index], status, message };
+                }
+                return newProducts;
+            });
+        };
+        
+        updateProductStatus(i, 'processing', 'Processing...');
+
+        try {
+            const brandNameTrimmed = productData.brand.trim();
+            if (!brandNameTrimmed) throw new Error("Brand name is empty.");
+
+            const brandId = existingBrandsMap.get(brandNameTrimmed.toLowerCase());
+            if (!brandId) throw new Error(`Brand "${brandNameTrimmed}" not found.`);
+
+            const price = parseFloat(String(productData.price).replace(/[^0-9.-]+/g,""));
+            if (isNaN(price)) throw new Error("Invalid price format.");
+
+            // Upload images
+            updateProductStatus(i, 'processing', 'Uploading images...');
+            const uploadedImages: Omit<ImagePlaceholder, 'id'>[] = [];
+            
+            const uploadImage = async (url: string, description: string, hint: string) => {
+                const res = await fetch('/api/image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, brandName: brandNameTrimmed, productName: productData.title })
+                });
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+                    throw new Error(`${description} upload failed: ${errorData.error}`);
+                }
+                const result = await res.json();
+                return { imageUrl: result.url, description, imageHint: hint };
+            };
+
+            if (productData.frontPic) {
+                uploadedImages.push(await uploadImage(productData.frontPic, 'Front View', 'front view'));
+            }
+            if (productData.hoverPic) {
+                uploadedImages.push(await uploadImage(productData.hoverPic, 'Hover View', 'hover view'));
+            }
+
+            // Save product to Firestore
+            updateProductStatus(i, 'processing', 'Saving to database...');
+            const newProductRef = doc(collection(db, 'products'));
+            const productDocData = {
+                name: productData.title,
+                slug: slugify(productData.title),
+                price,
+                costPrice: price * (1 - 0.35),
+                description: '',
+                brandIds: [brandId],
+                images: uploadedImages.map((img, idx) => ({ ...img, id: `${newProductRef.id}_${idx}` })),
+                materials: [], certifications: [], sustainabilityImpact: '', categoryIds: [], sizeIds: [],
+                colourIds: [], materialTypeIds: [], finishTypeIds: [], adhesiveIds: [], handleIds: [],
+                shapeIds: [], lidIds: [], showInWeddingTales: false, showInDesignersOnDiscount: false,
+                showInModernMustHaves: false, packagingPartnerTags: [], productCode: '', fit: '',
+                composition: '', care: '', createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+            };
+            await addDoc(collection(db, 'products'), productDocData);
+            
+            updateProductStatus(i, 'success', 'Success!');
+        } catch (e: any) {
+            updateProductStatus(i, 'error', e.message);
+        } finally {
+            setProcessedCount(prev => prev + 1);
+        }
+    }
+    setLogs(prev => [...prev, 'All products processed.']);
+    setIsProcessing(false);
   };
+
+  const progress = products.length > 0 ? (processedCount / products.length) * 100 : 0;
+
+  const renderStatusIcon = (status: ProductStatus) => {
+    switch (status) {
+        case 'pending': return <Clock className="h-4 w-4 text-muted-foreground" />;
+        case 'processing': return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
+        case 'success': return <CheckCircle className="h-4 w-4 text-green-500" />;
+        case 'error': return <XCircle className="h-4 w-4 text-red-500" />;
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -215,43 +220,42 @@ export default function DataUploadPage() {
       <Card>
         <CardHeader>
           <CardTitle>Upload Product Data</CardTitle>
-          <CardDescription>Upload an XLSX file with product information. The columns should be in this order: <code className="bg-muted px-1 rounded-sm">brand</code>, <code className="bg-muted px-1 rounded-sm">Front-pic</code>, <code className="bg-muted px-1 rounded-sm">Hover-pic</code>, <code className="bg-muted px-1 rounded-sm">Product-title</code>, <code className="bg-muted px-1 rounded-sm">price</code>. The first row will be ignored.</CardDescription>
+          <CardDescription>Upload an XLSX file. Columns must be: <code className="bg-muted px-1 rounded-sm">brand</code>, <code className="bg-muted px-1 rounded-sm">Front-pic</code>, <code className="bg-muted px-1 rounded-sm">Hover-pic</code>, <code className="bg-muted px-1 rounded-sm">Product-title</code>, <code className="bg-muted px-1 rounded-sm">price</code>. The first row is ignored.</CardDescription>
         </CardHeader>
         <CardContent className="flex items-center gap-4">
           <Input type="file" accept=".xlsx, .xls" onChange={handleFile} disabled={isProcessing} className="max-w-xs"/>
-          <Button onClick={handleUpload} disabled={isProcessing || parsedData.length === 0}>
+          <Button onClick={handleUpload} disabled={isProcessing || products.length === 0}>
             {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
             Upload to Firestore
           </Button>
         </CardContent>
       </Card>
       
-      {parsedData.length > 0 && (
+      {products.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><FileCheck2 className="h-5 w-5 text-green-500" /> Parsed Data Preview</CardTitle>
-            <CardDescription>Review the data before uploading. Only the first 10 rows are shown.</CardDescription>
+            <CardTitle className="flex items-center gap-2"><FileCheck2 className="h-5 w-5 text-green-500" /> Parsed Data & Upload Status</CardTitle>
+            <CardDescription>Review data and monitor the upload process. Images from URLs will be uploaded to S3.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-72">
+            {isProcessing && <Progress value={progress} className="w-full mb-4" />}
+            <ScrollArea className="h-96">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">Status</TableHead>
                     <TableHead>Brand</TableHead>
                     <TableHead>Title</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Front Pic</TableHead>
-                    <TableHead>Hover Pic</TableHead>
+                    <TableHead>Message</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {parsedData.slice(0, 10).map((row, index) => (
+                  {products.map((row, index) => (
                     <TableRow key={index}>
+                      <TableCell className="text-center">{renderStatusIcon(row.status)}</TableCell>
                       <TableCell>{row.brand}</TableCell>
                       <TableCell>{row.title}</TableCell>
-                      <TableCell>{row.price}</TableCell>
-                      <TableCell className="max-w-xs truncate"><a href={row.frontPic} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{row.frontPic}</a></TableCell>
-                      <TableCell className="max-w-xs truncate"><a href={row.hoverPic} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{row.hoverPic}</a></TableCell>
+                      <TableCell className={`text-sm ${row.status === 'error' ? 'text-red-500' : 'text-muted-foreground'}`}>{row.message}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -275,7 +279,6 @@ export default function DataUploadPage() {
           </CardContent>
         </Card>
       )}
-
     </div>
   );
 }

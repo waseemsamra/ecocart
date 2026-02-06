@@ -1,6 +1,7 @@
 
 'use server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { slugify } from '@/lib/utils';
 
 const { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_BUCKET_NAME } = process.env;
 
@@ -31,19 +32,28 @@ try {
     console.error("[S3 INIT] S3 Initialization Error:", s3Error);
 }
 
-export async function uploadToS3(buffer: Buffer, fileName: string, contentType: string, brandName?: string | null): Promise<string> {
+export async function uploadToS3(
+    buffer: Buffer, 
+    fileName: string, 
+    contentType: string, 
+    options: { brandName?: string | null; productName?: string | null } = {}
+): Promise<string> {
     if (!s3Client || !AWS_S3_BUCKET_NAME) {
         throw new Error(s3Error || "S3 client is not configured. Check server environment variables.");
     }
     
-    const originalFileName = fileName.replace(/\s+/g, '-');
-    let keyPath = 'uploads';
+    const { brandName, productName } = options;
+    const safeOriginalFileName = slugify(fileName.split('.').slice(0, -1).join('.')).slice(0, 50);
+    const extension = fileName.split('.').pop() || 'jpg';
+    let key: string;
 
     if (brandName) {
-        keyPath += `/brands`;
+        const brandSlug = slugify(brandName);
+        const productSlug = productName ? slugify(productName) : 'image';
+        key = `uploads/brands/${brandSlug}-${productSlug}-${Date.now()}.${extension}`;
+    } else {
+        key = `uploads/${Date.now()}-${safeOriginalFileName}.${extension}`;
     }
-    
-    const key = `${keyPath}/${Date.now()}-${originalFileName}`;
 
     const command = new PutObjectCommand({
         Bucket: AWS_S3_BUCKET_NAME,
@@ -53,9 +63,11 @@ export async function uploadToS3(buffer: Buffer, fileName: string, contentType: 
     });
     
     try {
-        await s3Client.send(command);
         const region = await s3Client.config.region();
+        console.log(`[S3 UPLOAD] Attempting to upload to bucket: ${AWS_S3_BUCKET_NAME}, Region: ${region}, Key: ${key}`);
+        await s3Client.send(command);
         const url = `https://${AWS_S3_BUCKET_NAME}.s3.${region}.amazonaws.com/${key}`;
+        console.log(`[S3 UPLOAD] Successfully generated S3 URL: ${url}`);
         return url;
     } catch (error) {
         console.error("[S3 UPLOAD] SDK send command failed:", error);

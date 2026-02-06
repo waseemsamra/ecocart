@@ -11,13 +11,14 @@ export async function POST(request: Request) {
       const formData = await request.formData();
       const file = formData.get('file') as File | null;
       const brandName = formData.get('brandName') as string | null;
+      const productName = formData.get('productName') as string | null;
 
       if (!file) {
         return NextResponse.json({ error: 'No file provided in form data.' }, { status: 400 });
       }
       
       const buffer = Buffer.from(await file.arrayBuffer());
-      const s3Url = await uploadToS3(buffer, file.name, file.type, brandName);
+      const s3Url = await uploadToS3(buffer, file.name, file.type, { brandName, productName });
       
       return NextResponse.json({ url: s3Url });
     }
@@ -26,21 +27,22 @@ export async function POST(request: Request) {
       const body = await request.json();
       const imageUrl = body.url as string;
       const brandName = body.brandName as string | null;
+      const productName = body.productName as string | null;
 
       if (!imageUrl || !imageUrl.startsWith('http')) {
         return NextResponse.json({ error: 'A valid public URL must be provided.' }, { status: 400 });
       }
 
-      const imageResponse = await fetch(imageUrl);
+      const imageResponse = await fetch(imageUrl, { headers: { 'User-Agent': 'ClothCard-Image-Migrator/1.0' }});
       if (!imageResponse.ok) {
           throw new Error(`Failed to fetch image from ${imageUrl}. Status: ${imageResponse.status}`);
       }
       
       const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
       const fetchedContentType = imageResponse.headers.get('content-type') || 'application/octet-stream';
-      const fileName = new URL(imageUrl).pathname.split('/').pop() || 'external-image';
+      const fileName = new URL(imageUrl).pathname.split('/').pop() || 'external-image.jpg';
 
-      const s3Url = await uploadToS3(imageBuffer, fileName, fetchedContentType, brandName);
+      const s3Url = await uploadToS3(imageBuffer, fileName, fetchedContentType, { brandName, productName });
 
       return NextResponse.json({ url: s3Url });
     }

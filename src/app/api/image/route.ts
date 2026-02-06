@@ -2,11 +2,24 @@
 import { NextResponse } from 'next/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
+// Destructuring at the top level is fine, but we need to check them before use.
 const { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_BUCKET_NAME } = process.env;
 
-// Initialize the S3 client, but only if the credentials are all present.
 let s3Client: S3Client | null = null;
-if (AWS_REGION && AWS_ACCESS_KEY_ID && AWS_SECRET_ACCESS_KEY) {
+let s3Error: string | null = null;
+
+// Initialization logic with clear error messages.
+try {
+    const missingVars = [];
+    if (!AWS_REGION) missingVars.push('AWS_REGION');
+    if (!AWS_ACCESS_KEY_ID) missingVars.push('AWS_ACCESS_KEY_ID');
+    if (!AWS_SECRET_ACCESS_KEY) missingVars.push('AWS_SECRET_ACCESS_KEY');
+    if (!AWS_S3_BUCKET_NAME) missingVars.push('AWS_S3_BUCKET_NAME');
+
+    if (missingVars.length > 0) {
+        throw new Error(`The following environment variables are missing from your .env.local file: ${missingVars.join(', ')}.`);
+    }
+
     s3Client = new S3Client({
         region: AWS_REGION,
         credentials: {
@@ -14,15 +27,19 @@ if (AWS_REGION && AWS_ACCESS_KEY_ID && AWS_SECRET_ACCESS_KEY) {
             secretAccessKey: AWS_SECRET_ACCESS_KEY,
         }
     });
-    console.log("S3 client initialized for region:", AWS_REGION);
-} else {
-    console.error("S3 client NOT initialized. Missing one or more environment variables.");
+    console.log("S3 client successfully initialized for region:", AWS_REGION);
+
+} catch (error: any) {
+    s3Error = error.message;
+    console.error("S3 Initialization Error:", s3Error);
 }
 
+
 async function uploadToS3(buffer: Buffer, fileName: string, contentType: string): Promise<string> {
+    // This function will now be called inside the POST handler, where we can check s3Client
     if (!s3Client || !AWS_S3_BUCKET_NAME) {
-        console.error("uploadToS3 called but S3 client or bucket name is not configured.");
-        throw new Error("S3 client is not configured. Check server environment variables.");
+         // This re-uses the error from initialization time.
+        throw new Error(s3Error || "S3 client is not configured. Check server environment variables.");
     }
     
     const key = `uploads/${Date.now()}-${fileName.replace(/\s+/g, '-')}`;
@@ -34,43 +51,36 @@ async function uploadToS3(buffer: Buffer, fileName: string, contentType: string)
         ContentType: contentType,
     });
 
-    console.log(`[S3 UPLOAD] Attempting to upload to:`);
-    console.log(`  -> Bucket: ${AWS_S3_BUCKET_NAME}`);
-    console.log(`  -> Region: ${AWS_REGION}`);
-    console.log(`  -> Key: ${key}`);
+    console.log(`[S3 UPLOAD] Attempting to upload to bucket "${AWS_S3_BUCKET_NAME}" in region "${AWS_REGION}"`);
 
     try {
-        const output = await s3Client.send(command);
-        console.log("[S3 UPLOAD] SDK send command successful. Full response:", JSON.stringify(output, null, 2));
-
-        if (output.$metadata.httpStatusCode !== 200) {
-            console.error("[S3 UPLOAD] SDK returned a non-200 status code:", output.$metadata.httpStatusCode);
-            throw new Error(`S3 returned status code ${output.$metadata.httpStatusCode}`);
-        }
-        
-        const url = `https://${AWS_S3_BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key}`;
-        console.log("[S3 UPLOAD] Generated URL:", url);
+        await s3Client.send(command);
+        const region = await s3Client.config.region();
+        const url = `https://${AWS_S3_BUCKET_NAME}.s3.${region}.amazonaws.com/${key}`;
+        console.log("[S3 UPLOAD] Successfully uploaded. Generated URL:", url);
         return url;
 
     } catch (error) {
         console.error("[S3 UPLOAD] SDK send command failed:", error);
-        throw error; // Re-throw the original error to be caught by the POST handler
+        // Provide more context for debugging S3 permissions.
+        if (error instanceof Error && (error.name === 'AccessDenied' || error.message.includes('Access Denied'))) {
+            throw new Error('S3 Access Denied. Please check your IAM user permissions and S3 bucket policy.');
+        }
+        throw error; // Re-throw other errors
     }
 }
 
 export async function POST(request: Request) {
   console.log("Image API route hit.");
-  if (!s3Client || !AWS_S3_BUCKET_NAME) {
-    const missingVars = [];
-    if (!process.env.AWS_REGION) missingVars.push('AWS_REGION');
-    if (!process.env.AWS_ACCESS_KEY_ID) missingVars.push('AWS_ACCESS_KEY_ID');
-    if (!process.env.AWS_SECRET_ACCESS_KEY) missingVars.push('AWS_SECRET_ACCESS_KEY');
-    if (!process.env.AWS_S3_BUCKET_NAME) missingVars.push('AWS_S3_BUCKET_NAME');
+  
+  if (s3Error) {
+      console.error("Configuration Error:", s3Error);
+      return NextResponse.json({ error: s3Error }, { status: 500 });
+  }
 
-    const errorMessage = `AWS S3 is not configured. The following environment variables are missing from your .env.local file: ${missingVars.join(', ')}.`;
-    console.error("Configuration Error:", errorMessage);
-    
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  // This check is now redundant because of the above, but good for safety.
+  if (!s3Client) {
+      return NextResponse.json({ error: "S3 Client not available. Check server logs." }, { status: 500 });
   }
   
   try {
@@ -92,7 +102,6 @@ export async function POST(request: Request) {
       const buffer = Buffer.from(await file.arrayBuffer());
       const s3Url = await uploadToS3(buffer, file.name, file.type);
       
-      console.log("Successfully generated S3 URL. Returning to client:", s3Url);
       return NextResponse.json({ url: s3Url });
     }
 
@@ -121,7 +130,6 @@ export async function POST(request: Request) {
 
       const s3Url = await uploadToS3(imageBuffer, fileName, fetchedContentType);
 
-      console.log("Successfully generated S3 URL from fetched image. Returning to client:", s3Url);
       return NextResponse.json({ url: s3Url });
     }
 

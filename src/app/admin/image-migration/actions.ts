@@ -1,18 +1,8 @@
 
 'use server';
-import { getFirestore, collection, getDocs, doc, updateDoc, getDoc, query, where } from 'firebase/firestore';
-import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { firebaseConfig } from '@/firebase/config';
+import { adminDb } from '@/firebase/admin-config';
 import { uploadToS3 } from '@/lib/s3-client';
 import type { Product, Brand } from '@/lib/types';
-
-let app: FirebaseApp;
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApps()[0];
-}
-const db = getFirestore(app);
 
 const s3BucketUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com`;
 
@@ -24,9 +14,12 @@ export interface ProductToMigrate {
 }
 
 export async function getProductsToMigrate(): Promise<{ products: ProductToMigrate[], error?: string }> {
+    if (!adminDb) {
+        return { products: [], error: "Firebase Admin SDK is not initialized. Please check your service account credentials in the .env file and restart the server." };
+    }
     try {
-        const productsSnapshot = await getDocs(collection(db, 'products'));
-        const brandsSnapshot = await getDocs(collection(db, 'brands'));
+        const productsSnapshot = await adminDb.collection('products').get();
+        const brandsSnapshot = await adminDb.collection('brands').get();
         const brandsMap = new Map(brandsSnapshot.docs.map(doc => [doc.id, doc.data() as Brand]));
 
         const productsToMigrate: ProductToMigrate[] = [];
@@ -55,10 +48,13 @@ export async function getProductsToMigrate(): Promise<{ products: ProductToMigra
 }
 
 export async function migrateImagesForProduct(productId: string, brandName: string | null): Promise<{ message: string, error?: string }> {
+    if (!adminDb) {
+        return { message: "Failed: Firebase Admin SDK is not initialized. Check server logs.", error: "Admin SDK not initialized" };
+    }
     try {
-        const productRef = doc(db, 'products', productId);
-        const productDoc = await getDoc(productRef);
-        if (!productDoc.exists()) {
+        const productRef = adminDb.collection('products').doc(productId);
+        const productDoc = await productRef.get();
+        if (!productDoc.exists) {
              throw new Error(`Product with ID ${productId} not found.`);
         }
         
@@ -86,7 +82,7 @@ export async function migrateImagesForProduct(productId: string, brandName: stri
                     }
                     const buffer = Buffer.from(await response.arrayBuffer());
                     const contentType = response.headers.get('content-type') || 'image/jpeg';
-                    const fileName = image.imageUrl.split('/').pop() || `${product.id}-${i}.jpg`;
+                    const fileName = image.imageUrl.split('/').pop()?.split('?')[0] || `${product.id}-${i}.jpg`;
                     
                     const newUrl = await uploadToS3(buffer, fileName, contentType, { brandName, productName: product.name });
                     newImages[i].imageUrl = newUrl;
@@ -100,7 +96,7 @@ export async function migrateImagesForProduct(productId: string, brandName: stri
         }
         
         if (migratedCount > 0) {
-            await updateDoc(productRef, { images: newImages });
+            await productRef.update({ images: newImages });
         }
 
         if(errorCount > 0 && migratedCount > 0) {

@@ -108,6 +108,14 @@ export default function SpotlightPage() {
             setIsUploading(true);
             const formData = new FormData();
             formData.append("file", imageFile);
+
+            // Add brand name for organized S3 path
+            const brandId = data.brandId;
+            const brand = brandId ? brands?.find(b => b.id === brandId) : null;
+            if (brand?.name) {
+                formData.append('brandName', brand.name);
+            }
+
             const response = await fetch('/api/image', { method: 'POST', body: formData });
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: `Image upload failed: ${response.statusText}` }));

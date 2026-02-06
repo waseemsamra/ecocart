@@ -1,6 +1,7 @@
 'use server';
 import { NextResponse } from 'next/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { slugify } from '@/lib/utils';
 
 // Destructuring at the top level is fine, but we need to check them before use.
 const { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_BUCKET_NAME } = process.env;
@@ -18,7 +19,7 @@ try {
     if (!AWS_S3_BUCKET_NAME) missingVars.push('AWS_S3_BUCKET_NAME');
 
     if (missingVars.length > 0) {
-        throw new Error(`The following environment variables are missing from your .env.local file: ${missingVars.join(', ')}. Please ensure this file exists in the root of your project and restart the server.`);
+        throw new Error(`The following environment variables are missing from your .env file: ${missingVars.join(', ')}. Please add them and restart the server.`);
     }
 
     console.log(`[S3 INIT] All credentials found. Region: ${AWS_REGION}, Bucket: ${AWS_S3_BUCKET_NAME}`);
@@ -38,12 +39,25 @@ try {
 }
 
 
-async function uploadToS3(buffer: Buffer, fileName: string, contentType: string): Promise<string> {
+async function uploadToS3(buffer: Buffer, fileName: string, contentType: string, brandName?: string | null, productName?: string | null): Promise<string> {
     if (!s3Client || !AWS_S3_BUCKET_NAME || !AWS_REGION) {
         throw new Error(s3Error || "S3 client is not configured. Check server environment variables and restart the server.");
     }
     
-    const key = `uploads/${Date.now()}-${fileName.replace(/\s+/g, '-')}`;
+    const originalFileName = fileName.replace(/\s+/g, '-');
+    let keyPath = 'uploads'; // Default path
+
+    if (brandName) {
+        const brandSlug = slugify(brandName);
+        keyPath += `/brands/${brandSlug}`;
+        if (productName) {
+            const productSlug = slugify(productName);
+            keyPath += `/${productSlug}`;
+        }
+    }
+
+    // Using a timestamp to ensure uniqueness, which is more robust than a simple index.
+    const key = `${keyPath}/${Date.now()}-${originalFileName}`;
 
     const command = new PutObjectCommand({
         Bucket: AWS_S3_BUCKET_NAME,
@@ -52,7 +66,7 @@ async function uploadToS3(buffer: Buffer, fileName: string, contentType: string)
         ContentType: contentType,
     });
 
-    console.log(`[S3 UPLOAD] Attempting to upload to bucket "${AWS_S3_BUCKET_NAME}" in region "${AWS_REGION}"`);
+    console.log(`[S3 UPLOAD] Attempting to upload to S3 path: ${key}`);
 
     try {
         await s3Client.send(command);
@@ -89,6 +103,8 @@ export async function POST(request: Request) {
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
       const file = formData.get('file') as File | null;
+      const brandName = formData.get('brandName') as string | null;
+      const productName = formData.get('productName') as string | null;
 
       if (!file) {
         console.error("[API] No file found in form data.");
@@ -98,7 +114,7 @@ export async function POST(request: Request) {
       console.log(`[API] Received file: ${file.name}, Size: ${file.size}, Type: ${file.type}`);
 
       const buffer = Buffer.from(await file.arrayBuffer());
-      const s3Url = await uploadToS3(buffer, file.name, file.type);
+      const s3Url = await uploadToS3(buffer, file.name, file.type, brandName, productName);
       
       return NextResponse.json({ url: s3Url });
     }
@@ -106,6 +122,9 @@ export async function POST(request: Request) {
     if (contentType.includes('application/json')) {
       const body = await request.json();
       const imageUrl = body.url as string;
+      const brandName = body.brandName as string | null;
+      const productName = body.productName as string | null;
+
       console.log("[API] Received request to fetch URL:", imageUrl);
 
       if (!imageUrl || !imageUrl.startsWith('http')) {
@@ -125,7 +144,7 @@ export async function POST(request: Request) {
 
       console.log(`[API] Fetched image: ${fileName}, Size: ${imageBuffer.length}, Type: ${fetchedContentType}`);
 
-      const s3Url = await uploadToS3(imageBuffer, fileName, fetchedContentType);
+      const s3Url = await uploadToS3(imageBuffer, fileName, fetchedContentType, brandName, productName);
 
       return NextResponse.json({ url: s3Url });
     }

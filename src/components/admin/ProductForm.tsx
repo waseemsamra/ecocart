@@ -278,6 +278,19 @@ export function ProductForm({ product }: { product?: Product }) {
                 if (file) {
                     const formData = new FormData();
                     formData.append('file', file);
+                    
+                    // Add context for better S3 pathing
+                    const productName = data.name;
+                    const brandId = data.brandIds?.[0];
+                    const brand = brandId ? optionData.brands.find(b => b.id === brandId) : null;
+                    
+                    if (productName) {
+                        formData.append('productName', productName);
+                    }
+                    if (brand?.name) {
+                        formData.append('brandName', brand.name);
+                    }
+
                     const response = await fetch('/api/image', { method: 'POST', body: formData });
                     if (!response.ok) {
                         const errorData = await response.json().catch(() => ({ error: `Image upload failed for image ${index + 1}: ${response.statusText}` }));

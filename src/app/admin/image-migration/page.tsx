@@ -52,7 +52,6 @@ export default function ImageMigrationPage() {
         setStatus('migrating');
         isStoppingRef.current = false;
         
-        // We only want to process products that are still pending
         const productsToProcess = products.filter(p => p.status === 'pending');
 
         for (const product of productsToProcess) {
@@ -63,9 +62,11 @@ export default function ImageMigrationPage() {
 
             try {
                 const result = await migrateImagesForProduct(product.id, product.brandName);
-                if (result.error) throw new Error(result.error);
-                
-                setProducts(prev => prev.map(p => p.id === product.id ? { ...p, status: 'success', message: result.message } : p));
+                if (result.error) {
+                    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, status: 'error', message: result.message } : p));
+                } else {
+                    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, status: 'success', message: result.message } : p));
+                }
             } catch (e: any) {
                 setProducts(prev => prev.map(p => p.id === product.id ? { ...p, status: 'error', message: e.message } : p));
             }
@@ -156,12 +157,14 @@ export default function ImageMigrationPage() {
                         )}
                         <div className="max-h-96 overflow-y-auto space-y-2 pr-4">
                             {products.map(p => (
-                                <div key={p.id} className="flex items-center gap-4 text-sm p-2 border rounded-md">
-                                    {p.status === 'pending' && <FileImage className="h-4 w-4 text-muted-foreground" />}
-                                    {p.status === 'success' && <CheckCircle className="h-4 w-4 text-green-500" />}
-                                    {p.status === 'error' && <XCircle className="h-4 w-4 text-red-500" />}
-                                    <span className="font-medium flex-1 truncate">{p.name}</span>
-                                    <span className="text-muted-foreground truncate">{p.message || ''}</span>
+                                <div key={p.id} className="flex items-start gap-4 text-sm p-2 border rounded-md">
+                                    {p.status === 'pending' && <FileImage className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />}
+                                    {p.status === 'success' && <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />}
+                                    {p.status === 'error' && <XCircle className="h-4 w-4 text-red-500 mt-1 flex-shrink-0" />}
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-medium truncate">{p.name}</p>
+                                      {p.message && <p className="text-muted-foreground whitespace-pre-wrap">{p.message}</p>}
+                                    </div>
                                 </div>
                             ))}
                         </div>

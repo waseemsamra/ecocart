@@ -68,16 +68,21 @@ export async function migrateImagesForProduct(productId: string, brandName: stri
         }
 
         let migratedCount = 0;
+        let errorCount = 0;
+        const errorMessages: string[] = [];
         const newImages = [...product.images];
 
         for (let i = 0; i < newImages.length; i++) {
             const image = newImages[i];
             if (image.imageUrl && !image.imageUrl.startsWith(s3BucketUrl)) {
                 try {
-                    const response = await fetch(image.imageUrl);
+                    const response = await fetch(image.imageUrl, {
+                       headers: {
+                           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                       },
+                    });
                     if (!response.ok) {
-                        console.warn(`Skipping ${image.imageUrl}: Failed to fetch (status ${response.status})`);
-                        continue;
+                        throw new Error(`Failed to fetch (status ${response.status})`);
                     }
                     const buffer = Buffer.from(await response.arrayBuffer());
                     const contentType = response.headers.get('content-type') || 'image/jpeg';
@@ -87,17 +92,25 @@ export async function migrateImagesForProduct(productId: string, brandName: stri
                     newImages[i].imageUrl = newUrl;
                     migratedCount++;
                 } catch (fetchError: any) {
-                    console.warn(`Skipping ${image.imageUrl} due to fetch error: ${fetchError.message}`);
-                    continue; // Skip this image and continue with the next
+                    console.warn(`Skipping ${image.imageUrl} for product ${productId} due to fetch error: ${fetchError.message}`);
+                    errorCount++;
+                    errorMessages.push(`- ${image.imageUrl.split('/').pop()}: ${fetchError.message}`);
                 }
             }
         }
         
         if (migratedCount > 0) {
             await updateDoc(productRef, { images: newImages });
+        }
+
+        if(errorCount > 0 && migratedCount > 0) {
+            return { message: `Migrated ${migratedCount} image(s), but ${errorCount} failed.\n${errorMessages.join('\n')}` };
+        } else if (errorCount > 0) {
+            return { message: `Failed to migrate ${errorCount} image(s).\n${errorMessages.join('\n')}`, error: 'Some images failed' };
+        } else if (migratedCount > 0) {
             return { message: `Successfully migrated ${migratedCount} image(s).` };
         } else {
-             return { message: "All images already migrated." };
+             return { message: "All images already migrated or nothing to migrate." };
         }
 
     } catch (e: any) {

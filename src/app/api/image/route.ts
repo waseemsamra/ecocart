@@ -10,6 +10,7 @@ let s3Error: string | null = null;
 
 // Initialization logic with clear error messages.
 try {
+    console.log('[S3 INIT] Starting S3 client initialization...');
     const missingVars = [];
     if (!AWS_REGION) missingVars.push('AWS_REGION');
     if (!AWS_ACCESS_KEY_ID) missingVars.push('AWS_ACCESS_KEY_ID');
@@ -20,6 +21,8 @@ try {
         throw new Error(`The following environment variables are missing from your .env.local file: ${missingVars.join(', ')}. Please ensure this file exists in the root of your project and restart the server.`);
     }
 
+    console.log(`[S3 INIT] All credentials found. Region: ${AWS_REGION}, Bucket: ${AWS_S3_BUCKET_NAME}`);
+
     s3Client = new S3Client({
         region: AWS_REGION,
         credentials: {
@@ -27,18 +30,16 @@ try {
             secretAccessKey: AWS_SECRET_ACCESS_KEY,
         }
     });
-    console.log("S3 client successfully initialized for region:", AWS_REGION);
+    console.log("[S3 INIT] S3 client successfully initialized.");
 
 } catch (error: any) {
     s3Error = error.message;
-    console.error("S3 Initialization Error:", s3Error);
+    console.error("[S3 INIT] S3 Initialization Error:", s3Error);
 }
 
 
 async function uploadToS3(buffer: Buffer, fileName: string, contentType: string): Promise<string> {
-    // This function will now be called inside the POST handler, where we can check s3Client
     if (!s3Client || !AWS_S3_BUCKET_NAME || !AWS_REGION) {
-         // This re-uses the error from initialization time.
         throw new Error(s3Error || "S3 client is not configured. Check server environment variables and restart the server.");
     }
     
@@ -55,51 +56,46 @@ async function uploadToS3(buffer: Buffer, fileName: string, contentType: string)
 
     try {
         await s3Client.send(command);
-        // The AWS_REGION is already confirmed to be present at the start of the file.
-        // We construct the URL directly using it for consistency.
         const url = `https://${AWS_S3_BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key}`;
-        console.log(`[S3 UPLOAD] SDK send command successful.`);
-        console.log(`[S3 UPLOAD] Generated URL: ${url}`);
+        console.log(`[S3 UPLOAD] SDK send command successful. Generated URL: ${url}`);
         return url;
-
     } catch (error) {
         console.error("[S3 UPLOAD] SDK send command failed:", error);
-        // Provide more context for debugging S3 permissions.
         if (error instanceof Error && (error.name === 'AccessDenied' || error.message.includes('Access Denied'))) {
             throw new Error('S3 Access Denied. Please check your IAM user permissions and S3 bucket policy.');
         }
-        throw error; // Re-throw other errors
+        throw error;
     }
 }
 
 export async function POST(request: Request) {
-  console.log("Image API route hit.");
+  console.log("Image API route hit at:", new Date().toISOString());
   
   if (s3Error) {
-      console.error("Configuration Error:", s3Error);
+      console.error("[API CHECK] Configuration Error from init:", s3Error);
       return NextResponse.json({ error: s3Error }, { status: 500 });
   }
 
-  // This check is now redundant because of the above, but good for safety.
   if (!s3Client) {
-      return NextResponse.json({ error: "S3 Client not available. Check server logs." }, { status: 500 });
+      const errorMessage = "S3 Client not available. This is unexpected. Check server startup logs for an S3 Initialization Error.";
+      console.error("[API CHECK]", errorMessage);
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
   
   try {
     const contentType = request.headers.get('content-type') || '';
-    console.log("Request Content-Type:", contentType);
+    console.log("[API] Request Content-Type:", contentType);
 
-    // CASE 1: Client sends a file for direct upload
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
       const file = formData.get('file') as File | null;
 
       if (!file) {
-        console.error("No file found in form data.");
+        console.error("[API] No file found in form data.");
         return NextResponse.json({ error: 'No file provided in form data.' }, { status: 400 });
       }
       
-      console.log(`Received file: ${file.name}, Size: ${file.size}, Type: ${file.type}`);
+      console.log(`[API] Received file: ${file.name}, Size: ${file.size}, Type: ${file.type}`);
 
       const buffer = Buffer.from(await file.arrayBuffer());
       const s3Url = await uploadToS3(buffer, file.name, file.type);
@@ -107,20 +103,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ url: s3Url });
     }
 
-    // CASE 2: Client sends a URL to be fetched
     if (contentType.includes('application/json')) {
       const body = await request.json();
       const imageUrl = body.url as string;
-      console.log("Received request to fetch URL:", imageUrl);
+      console.log("[API] Received request to fetch URL:", imageUrl);
 
       if (!imageUrl || !imageUrl.startsWith('http')) {
-        console.error("Invalid URL provided for fetching.");
+        console.error("[API] Invalid URL provided for fetching.");
         return NextResponse.json({ error: 'A valid public URL must be provided in the JSON body.' }, { status: 400 });
       }
 
       const imageResponse = await fetch(imageUrl);
       if (!imageResponse.ok) {
-          console.error(`Failed to fetch image from ${imageUrl}. Status: ${imageResponse.status}`);
+          console.error(`[API] Failed to fetch image from ${imageUrl}. Status: ${imageResponse.status}`);
           throw new Error(`Failed to fetch image from ${imageUrl}. Status: ${imageResponse.status}`);
       }
       
@@ -128,19 +123,18 @@ export async function POST(request: Request) {
       const fetchedContentType = imageResponse.headers.get('content-type') || 'application/octet-stream';
       const fileName = new URL(imageUrl).pathname.split('/').pop() || 'external-image';
 
-      console.log(`Fetched image: ${fileName}, Size: ${imageBuffer.length}, Type: ${fetchedContentType}`);
+      console.log(`[API] Fetched image: ${fileName}, Size: ${imageBuffer.length}, Type: ${fetchedContentType}`);
 
       const s3Url = await uploadToS3(imageBuffer, fileName, fetchedContentType);
 
       return NextResponse.json({ url: s3Url });
     }
 
-    // If content type is not supported
-    console.error("Unsupported Content-Type:", contentType);
+    console.error("[API] Unsupported Content-Type:", contentType);
     return NextResponse.json({ error: 'Unsupported Content-Type. Use multipart/form-data or application/json.' }, { status: 415 });
 
   } catch (error) {
-    console.error('Image processing endpoint error:', error);
+    console.error('[API] Image processing endpoint error:', error);
     let message = 'Failed to process image.';
     if (error instanceof Error) {
         message = error.message;

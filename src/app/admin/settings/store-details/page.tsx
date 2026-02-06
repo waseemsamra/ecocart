@@ -125,27 +125,41 @@ export default function StoreDetailsPage() {
       setIsUploading(true);
 
       if (logoFile) {
+        console.log('[CLIENT UPLOAD] Preparing to upload logo file...');
         const logoFormData = new FormData();
         logoFormData.append("file", logoFile);
+        
+        console.log('[CLIENT UPLOAD] Sending request to /api/image');
         const response = await fetch('/api/image', { method: 'POST', body: logoFormData });
+        
+        console.log(`[CLIENT UPLOAD] Received response with status: ${response.status}`);
+        
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: `Logo upload failed: ${response.statusText}` }));
             throw new Error(errorData.error);
         }
         logoUrlToSave = (await response.json()).url;
+        console.log(`[CLIENT UPLOAD] Successfully received S3 URL: ${logoUrlToSave}`);
       } else if (logoUrlToSave && !logoUrlToSave.startsWith('http') && !logoUrlToSave.startsWith('data:')) {
         logoUrlToSave = `${s3BaseUrl}${logoUrlToSave}`;
       }
 
       if (guideImageFile) {
+        console.log('[CLIENT UPLOAD] Preparing to upload guide image file...');
         const guideFormData = new FormData();
         guideFormData.append("file", guideImageFile);
+        
+        console.log('[CLIENT UPLOAD] Sending request to /api/image for guide image');
         const response = await fetch('/api/image', { method: 'POST', body: guideFormData });
+        
+        console.log(`[CLIENT UPLOAD] Received response for guide image with status: ${response.status}`);
+
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: `Guide image upload failed: ${response.statusText}` }));
             throw new Error(errorData.error);
         }
          guideImageUrlToSave = (await response.json()).url;
+        console.log(`[CLIENT UPLOAD] Successfully received S3 URL for guide image: ${guideImageUrlToSave}`);
       } else if (guideImageUrlToSave && !guideImageUrlToSave.startsWith('http') && !guideImageUrlToSave.startsWith('data:')) {
          guideImageUrlToSave = `${s3BaseUrl}${guideImageUrlToSave}`;
       }
@@ -165,11 +179,12 @@ export default function StoreDetailsPage() {
         description: 'Store details updated successfully.',
       });
     } catch (error: any) {
-      console.error('Error updating store details:', error);
+      console.error('Error in onSubmit store details:', error);
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: error.message || 'Failed to update store details.',
+        title: 'Upload Error',
+        description: error.message || 'Failed to update store details. Check the browser console for more details.',
+        duration: 10000,
       });
       setIsUploading(false);
     } finally {

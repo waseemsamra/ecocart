@@ -63,13 +63,13 @@ export default function DataUploadPage() {
 
         // Map from JSON data to our product structure. Handles potential header variations.
         const productsWithStatus: ParsedProductWithStatus[] = jsonData.map((row) => {
-            // Find keys case-insensitively
-            const findKey = (keyName: string) => Object.keys(row).find(k => k.toLowerCase() === keyName.toLowerCase());
+            // Find keys case-insensitively and ignoring hyphens/underscores/spaces
+            const findKey = (keyName: string) => Object.keys(row).find(k => k.toLowerCase().replace(/[-_\s]/g, '') === keyName.toLowerCase().replace(/[-_\s]/g, ''));
             
             const brandKey = findKey('brand');
             const frontPicKey = findKey('front-pic');
             const hoverPicKey = findKey('hover-pic');
-            const titleKey = findKey('product-title');
+            const titleKey = findKey('product-title'); // this now matches product_title
             const priceKey = findKey('price');
 
             return {
@@ -158,18 +158,7 @@ export default function DataUploadPage() {
 
             const brandId = existingBrandsMap.get(brandNameTrimmed.toLowerCase());
             if (!brandId) throw new Error(`Brand "${brandNameTrimmed}" not found.`);
-
-            // Check for existing product to prevent duplicates
-            updateProductStatus(i, 'processing', 'Checking for duplicates...');
-            const q = query(productsRef, where('name', '==', productData.title), where('brandIds', 'array-contains', brandId), limit(1));
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-                updateProductStatus(i, 'skipped', 'Skipped: Product already exists.');
-                setProcessedCount(prev => prev + 1);
-                continue; // Skip to the next product
-            }
-
+            
             const price = parseFloat(String(productData.price).replace(/[^0-9.-]+/g,""));
             if (isNaN(price)) throw new Error("Invalid price format.");
 
@@ -178,6 +167,7 @@ export default function DataUploadPage() {
             const uploadedImages: Omit<ImagePlaceholder, 'id'>[] = [];
             
             const uploadImage = async (url: string, description: string, hint: string) => {
+                if (!url) return null;
                 const res = await fetch('/api/image', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -191,12 +181,11 @@ export default function DataUploadPage() {
                 return { imageUrl: result.url, description, imageHint: hint };
             };
 
-            if (productData.frontPic) {
-                uploadedImages.push(await uploadImage(productData.frontPic, 'Front View', 'front view'));
-            }
-            if (productData.hoverPic) {
-                uploadedImages.push(await uploadImage(productData.hoverPic, 'Hover View', 'hover view'));
-            }
+            const frontImage = await uploadImage(productData.frontPic, 'Front View', 'front view');
+            if (frontImage) uploadedImages.push(frontImage);
+            
+            const hoverImage = await uploadImage(productData.hoverPic, 'Hover View', 'hover view');
+            if (hoverImage) uploadedImages.push(hoverImage);
 
             // Save product to Firestore
             updateProductStatus(i, 'processing', 'Saving to database...');
@@ -247,7 +236,7 @@ export default function DataUploadPage() {
       <Card>
         <CardHeader>
           <CardTitle>Upload Product Data</CardTitle>
-          <CardDescription>Upload an XLSX file. Columns must be: <code className="bg-muted px-1 rounded-sm">brand</code>, <code className="bg-muted px-1 rounded-sm">Front-pic</code>, <code className="bg-muted px-1 rounded-sm">Hover-pic</code>, <code className="bg-muted px-1 rounded-sm">Product-title</code>, <code className="bg-muted px-1 rounded-sm">price</code>. The first row is ignored.</CardDescription>
+          <CardDescription>Upload an XLSX file. Columns can be: <code className="bg-muted px-1 rounded-sm">brand</code>, <code className="bg-muted px-1 rounded-sm">Front-pic</code>, <code className="bg-muted px-1 rounded-sm">Hover-pic</code>, <code className="bg-muted px-1 rounded-sm">product_title</code>, <code className="bg-muted px-1 rounded-sm">price</code>. The first row is used for headers.</CardDescription>
         </CardHeader>
         <CardContent className="flex items-center gap-4">
           <Input type="file" accept=".xlsx, .xls" onChange={handleFile} disabled={isProcessing} className="max-w-xs"/>

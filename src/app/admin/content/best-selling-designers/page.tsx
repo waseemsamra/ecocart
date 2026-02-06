@@ -23,6 +23,7 @@ export default function BestSellingDesignersPage() {
   const db = useFirestore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { loading: authLoading } = useAuth();
+  const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBrandIds, setSelectedBrandIds] = useState<string[]>([]);
 
@@ -45,6 +46,17 @@ export default function BestSellingDesignersPage() {
   const isLoadingPage = authLoading || isLoadingSettings || isLoadingBrands;
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchTerm(inputValue);
+    }, 300); // 300ms debounce delay
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [inputValue]);
+
+
+  useEffect(() => {
     if (settingsData?.brandIds) {
       setSelectedBrandIds(settingsData.brandIds);
     }
@@ -52,7 +64,9 @@ export default function BestSellingDesignersPage() {
 
   const filteredBrands = useMemo(() => {
     if (!brands) return [];
-    if (!searchTerm) return brands;
+    if (searchTerm.length < 3) {
+      return searchTerm.length === 0 ? brands : [];
+    }
     return brands.filter(brand =>
       brand.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -118,44 +132,52 @@ export default function BestSellingDesignersPage() {
     <div className="space-y-6">
       <div>
         <h1 className="font-headline text-3xl font-bold">Best Selling Designers</h1>
-        <p className="text-muted-foreground">Select up to {MAX_SELECTIONS} brands to feature on the homepage.</p>
+        <p className="text-muted-foreground">Select up to ${MAX_SELECTIONS} brands to feature on the homepage.</p>
       </div>
         <Card className="max-w-3xl">
           <CardHeader>
             <CardTitle>Select Brands</CardTitle>
             <CardDescription>
                 The brands you select will be displayed in the "Best Selling Designers" section on your homepage.
-                ({selectedBrandIds.length} / {MAX_SELECTIONS} selected)
+                ({selectedBrandIds.length} / ${MAX_SELECTIONS} selected)
             </CardDescription>
              <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                    placeholder="Search brands..."
+                    placeholder="Search brands (3+ characters)..."
                     className="pl-9"
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
+                    value={inputValue}
+                    onChange={e => setInputValue(e.target.value)}
                 />
             </div>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-96">
                 <div className="space-y-2">
-                    {filteredBrands?.map(brand => (
-                        <div key={brand.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted">
-                            <Checkbox
-                                id={brand.id}
-                                checked={selectedBrandIds.includes(brand.id)}
-                                onCheckedChange={() => handleCheckboxChange(brand.id)}
-                                disabled={!selectedBrandIds.includes(brand.id) && selectedBrandIds.length >= MAX_SELECTIONS}
-                            />
-                            <label
-                                htmlFor={brand.id}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                                {brand.name}
-                            </label>
-                        </div>
-                    ))}
+                    {filteredBrands && filteredBrands.length > 0 ? (
+                        filteredBrands.map(brand => (
+                            <div key={brand.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted">
+                                <Checkbox
+                                    id={brand.id}
+                                    checked={selectedBrandIds.includes(brand.id)}
+                                    onCheckedChange={() => handleCheckboxChange(brand.id)}
+                                    disabled={!selectedBrandIds.includes(brand.id) && selectedBrandIds.length >= MAX_SELECTIONS}
+                                />
+                                <label
+                                    htmlFor={brand.id}
+                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
+                                    {brand.name}
+                                </label>
+                            </div>
+                        ))
+                    ) : searchTerm.length >= 3 ? (
+                        <div className="text-center text-muted-foreground p-4">No brands found for "{searchTerm}".</div>
+                    ) : inputValue.length > 0 ? (
+                        <div className="text-center text-muted-foreground p-4">Please enter at least 3 characters to search.</div>
+                    ) : (
+                        <div className="text-center text-muted-foreground p-4">No brands available to select.</div>
+                    )}
                 </div>
             </ScrollArea>
           </CardContent>

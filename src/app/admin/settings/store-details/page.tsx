@@ -128,7 +128,10 @@ export default function StoreDetailsPage() {
         const logoFormData = new FormData();
         logoFormData.append("file", logoFile);
         const response = await fetch('/api/image', { method: 'POST', body: logoFormData });
-        if (!response.ok) throw new Error(`Logo upload failed: ${response.statusText}`);
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: `Logo upload failed: ${response.statusText}` }));
+            throw new Error(errorData.error);
+        }
         logoUrlToSave = (await response.json()).url;
       } else if (logoUrlToSave && !logoUrlToSave.startsWith('http') && !logoUrlToSave.startsWith('data:')) {
         logoUrlToSave = `${s3BaseUrl}${logoUrlToSave}`;
@@ -138,8 +141,11 @@ export default function StoreDetailsPage() {
         const guideFormData = new FormData();
         guideFormData.append("file", guideImageFile);
         const response = await fetch('/api/image', { method: 'POST', body: guideFormData });
-        if (!response.ok) throw new Error(`Guide image upload failed: ${response.statusText}`);
-        guideImageUrlToSave = (await response.json()).url;
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: `Guide image upload failed: ${response.statusText}` }));
+            throw new Error(errorData.error);
+        }
+         guideImageUrlToSave = (await response.json()).url;
       } else if (guideImageUrlToSave && !guideImageUrlToSave.startsWith('http') && !guideImageUrlToSave.startsWith('data:')) {
          guideImageUrlToSave = `${s3BaseUrl}${guideImageUrlToSave}`;
       }

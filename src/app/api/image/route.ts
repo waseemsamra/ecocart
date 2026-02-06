@@ -36,7 +36,15 @@ async function uploadToS3(buffer: Buffer, fileName: string, contentType: string)
 
 export async function POST(request: Request) {
   if (!s3Client || !AWS_S3_BUCKET_NAME) {
-    return NextResponse.json({ error: 'AWS S3 is not configured on the server. Please check your environment variables.' }, { status: 500 });
+    const missingVars = [];
+    if (!process.env.AWS_REGION) missingVars.push('AWS_REGION');
+    if (!process.env.AWS_ACCESS_KEY_ID) missingVars.push('AWS_ACCESS_KEY_ID');
+    if (!process.env.AWS_SECRET_ACCESS_KEY) missingVars.push('AWS_SECRET_ACCESS_KEY');
+    if (!process.env.AWS_S3_BUCKET_NAME) missingVars.push('AWS_S3_BUCKET_NAME');
+
+    const errorMessage = `AWS S3 is not configured. The following environment variables are missing from your .env.local file: ${missingVars.join(', ')}.`;
+    
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
   
   try {

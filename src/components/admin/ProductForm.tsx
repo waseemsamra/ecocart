@@ -279,7 +279,10 @@ export function ProductForm({ product }: { product?: Product }) {
                     const formData = new FormData();
                     formData.append('file', file);
                     const response = await fetch('/api/image', { method: 'POST', body: formData });
-                    if (!response.ok) throw new Error(`Image upload failed for image ${index + 1}`);
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ error: `Image upload failed for image ${index + 1}: ${response.statusText}` }));
+                        throw new Error(errorData.error);
+                    }
                     const result = await response.json();
                     finalUrl = result.url;
                 } else if (finalUrl && !finalUrl.startsWith('http')) {

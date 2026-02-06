@@ -124,7 +124,10 @@ export default function AdminHeroSlidesPage() {
                 const formData = new FormData();
                 formData.append("file", logoFile);
                 const response = await fetch('/api/image', { method: 'POST', body: formData });
-                if (!response.ok) throw new Error(`Image upload failed: ${response.statusText}`);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: `Image upload failed: ${response.statusText}` }));
+                    throw new Error(errorData.error);
+                }
                 const result = await response.json();
                 finalImageUrl = result.url;
                 setIsUploading(false);

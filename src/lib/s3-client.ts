@@ -1,3 +1,4 @@
+
 'use server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { slugify } from '@/lib/utils';
@@ -41,19 +42,23 @@ export async function uploadToS3(
         throw new Error(s3Error || "S3 client is not configured. Check server environment variables.");
     }
     
-    const { brandName } = options;
+    const { brandName, productName } = options;
     const extension = fileName.split('.').pop()?.toLowerCase() || 'jpg';
     const timestamp = Date.now();
     let key: string;
 
     if (brandName) {
         const brandSlug = slugify(brandName).slice(0, 20);
-        key = `uploads/brands/${brandSlug}-${timestamp}.${extension}`;
+        // If product name is available, include it for more descriptive filenames.
+        const productSlug = productName ? slugify(productName).slice(0, 30) : '';
+        const baseName = productSlug ? `${brandSlug}--${productSlug}` : brandSlug;
+        key = `uploads/brands/${baseName}--${timestamp}.${extension}`;
     } else {
-        // Fallback for uploads without a brand context, like a store logo
-        const safeOriginalFileName = slugify(fileName.split('.').slice(0, -1).join('.')).slice(0, 20);
-        key = `uploads/${timestamp}-${safeOriginalFileName}.${extension}`;
+        // Fallback for general uploads like store logos
+        const safeOriginalFileName = slugify(fileName.split('.').slice(0, -1).join('.')).slice(0, 50);
+        key = `uploads/general/${timestamp}-${safeOriginalFileName}.${extension}`;
     }
+
 
     const command = new PutObjectCommand({
         Bucket: AWS_S3_BUCKET_NAME,

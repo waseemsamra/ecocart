@@ -1,5 +1,3 @@
-
-'use server';
 import admin from 'firebase-admin';
 
 // This is the shape of the service account key JSON file.

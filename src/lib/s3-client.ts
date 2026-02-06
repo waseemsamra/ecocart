@@ -1,4 +1,3 @@
-
 'use server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { slugify } from '@/lib/utils';
@@ -48,11 +47,11 @@ export async function uploadToS3(
     let key: string;
 
     if (brandName) {
-        const brandSlug = slugify(brandName);
+        const brandSlug = slugify(brandName).slice(0, 20);
         key = `uploads/brands/${brandSlug}-${timestamp}.${extension}`;
     } else {
         // Fallback for uploads without a brand context, like a store logo
-        const safeOriginalFileName = slugify(fileName.split('.').slice(0, -1).join('.')).slice(0, 50);
+        const safeOriginalFileName = slugify(fileName.split('.').slice(0, -1).join('.')).slice(0, 20);
         key = `uploads/${timestamp}-${safeOriginalFileName}.${extension}`;
     }
 

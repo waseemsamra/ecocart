@@ -1,16 +1,16 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, CheckCircle, XCircle, FileImage, ShieldAlert, Sparkles } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, FileImage, ShieldAlert, Sparkles, PauseCircle } from 'lucide-react';
 import { getProductsToMigrate, migrateImagesForProduct } from './actions';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import type { ProductToMigrate } from './actions';
 
-type MigrationStatus = 'idle' | 'fetching' | 'ready' | 'migrating' | 'complete';
+type MigrationStatus = 'idle' | 'fetching' | 'ready' | 'migrating' | 'complete' | 'stopped';
 type ProductStatus = 'pending' | 'success' | 'error';
 
 interface ProductWithStatus extends ProductToMigrate {
@@ -23,12 +23,14 @@ export default function ImageMigrationPage() {
     const [products, setProducts] = useState<ProductWithStatus[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [processedCount, setProcessedCount] = useState(0);
+    const isStoppingRef = useRef(false);
 
     const handleFetch = async () => {
         setStatus('fetching');
         setError(null);
         setProducts([]);
         setProcessedCount(0);
+        isStoppingRef.current = false;
         try {
             const result = await getProductsToMigrate();
             if (result.error) {
@@ -41,13 +43,25 @@ export default function ImageMigrationPage() {
             setStatus('idle');
         }
     };
+    
+    const handleStop = () => {
+        isStoppingRef.current = true;
+    };
 
     const handleMigrate = async () => {
         setStatus('migrating');
-        setProcessedCount(0);
+        isStoppingRef.current = false;
         
-        for (let i = 0; i < products.length; i++) {
-            const product = products[i];
+        // We only want to process products that are still pending
+        const productsToProcess = products.filter(p => p.status === 'pending');
+        let currentProcessedCount = 0;
+
+        for (const product of productsToProcess) {
+            if (isStoppingRef.current) {
+                setStatus('stopped');
+                break;
+            }
+
             try {
                 const result = await migrateImagesForProduct(product.id, product.brandName);
                 if (result.error) throw new Error(result.error);
@@ -56,13 +70,32 @@ export default function ImageMigrationPage() {
             } catch (e: any) {
                 setProducts(prev => prev.map(p => p.id === product.id ? { ...p, status: 'error', message: e.message } : p));
             }
+            currentProcessedCount++;
             setProcessedCount(prev => prev + 1);
         }
 
-        setStatus('complete');
+        if (!isStoppingRef.current) {
+            setStatus('complete');
+        }
     };
 
     const progressValue = products.length > 0 ? (processedCount / products.length) * 100 : 0;
+    
+    const getCardDescription = () => {
+        const totalPending = products.filter(p => p.status === 'pending').length;
+        switch (status) {
+            case 'ready':
+                return `Found ${products.length} products with external images to migrate.`;
+            case 'migrating':
+                return `Migrating ${processedCount} of ${products.length}...`;
+            case 'stopped':
+                return `Migration stopped. ${processedCount} of ${products.length} processed. ${totalPending} remaining.`;
+            case 'complete':
+                 return `Migration complete! Processed ${processedCount} of ${products.length} products.`;
+            default:
+                return 'Status of the image migration process will be shown here.';
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -83,7 +116,7 @@ export default function ImageMigrationPage() {
                 <CardHeader>
                     <CardTitle>Migration Control</CardTitle>
                     <CardDescription>
-                        Step 1: Fetch products with external images. Step 2: Start the migration to upload them to S3.
+                        Step 1: Fetch products with external images. Step 2: Start the migration. You can stop the process at any time.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex items-center gap-4">
@@ -91,10 +124,16 @@ export default function ImageMigrationPage() {
                         {status === 'fetching' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Step 1: Fetch Products
                     </Button>
-                    <Button onClick={handleMigrate} disabled={status !== 'ready' && status !== 'complete'}>
+                    <Button onClick={handleMigrate} disabled={status === 'fetching' || status === 'migrating' || (status === 'complete' && products.every(p => p.status !== 'pending'))}>
                         {status === 'migrating' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Step 2: Start Migration
+                        Step 2: Start/Resume Migration
                     </Button>
+                    {status === 'migrating' && (
+                        <Button variant="destructive" onClick={handleStop}>
+                            <PauseCircle className="mr-2 h-4 w-4" />
+                            Stop
+                        </Button>
+                    )}
                 </CardContent>
             </Card>
 
@@ -105,20 +144,16 @@ export default function ImageMigrationPage() {
                 </Alert>
             )}
 
-            {(status === 'ready' || status === 'migrating' || status === 'complete') && (
+            {(status !== 'idle' && status !== 'fetching') && (
                  <Card>
                     <CardHeader>
                         <CardTitle>Migration Progress</CardTitle>
                         <CardDescription>
-                           {
-                                status === 'ready' ? `Found ${products.length} products with external images to migrate.` :
-                                status === 'migrating' ? `Migrating ${processedCount} of ${products.length}...` :
-                                `Migration complete! Processed ${processedCount} of ${products.length} products.`
-                           }
+                           {getCardDescription()}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {status === 'migrating' && (
+                        {(status === 'migrating' || status === 'stopped' || status === 'complete') && (
                              <Progress value={progressValue} className="w-full mb-4" />
                         )}
                         <div className="max-h-96 overflow-y-auto space-y-2 pr-4">

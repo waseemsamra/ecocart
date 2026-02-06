@@ -37,6 +37,7 @@ import {
   FolderOpenDot,
   Star,
   Upload,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -131,6 +132,15 @@ export function AdminSidebar() {
               <Link href="/admin/data-upload">
                 <Upload />
                 <span>Data Upload</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={pathname === '/admin/image-migration'} tooltip="Image Migration">
+              <Link href="/admin/image-migration">
+                <Sparkles />
+                <span>Image Migration</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -297,4 +307,3 @@ export function AdminSidebar() {
     </Sidebar>
   );
 }
-    

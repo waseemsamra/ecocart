@@ -52,22 +52,36 @@ export default function DataUploadPage() {
         const workbook = XLSX.read(data, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        const rows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
         
-        if (rows.length < 2) {
+        // This will parse the sheet into an array of objects, using the first row as headers.
+        const jsonData: any[] = XLSX.utils.sheet_to_json(sheet);
+        
+        if (jsonData.length === 0) {
           setLogs(prev => [...prev, 'Error: No data found in the sheet.']);
           return;
         }
 
-        const productsWithStatus: ParsedProductWithStatus[] = rows.slice(1).map((row) => ({
-          brand: row[0] || '',
-          frontPic: row[1] || '',
-          hoverPic: row[2] || '',
-          title: row[3] || '',
-          price: String(row[4] || '0'),
-          status: 'pending',
-          message: 'Waiting...'
-        }));
+        // Map from JSON data to our product structure. Handles potential header variations.
+        const productsWithStatus: ParsedProductWithStatus[] = jsonData.map((row) => {
+            // Find keys case-insensitively
+            const findKey = (keyName: string) => Object.keys(row).find(k => k.toLowerCase() === keyName.toLowerCase());
+            
+            const brandKey = findKey('brand');
+            const frontPicKey = findKey('front-pic');
+            const hoverPicKey = findKey('hover-pic');
+            const titleKey = findKey('product-title');
+            const priceKey = findKey('price');
+
+            return {
+              brand: brandKey ? row[brandKey] : '',
+              frontPic: frontPicKey ? row[frontPicKey] : '',
+              hoverPic: hoverPicKey ? row[hoverPicKey] : '',
+              title: titleKey ? row[titleKey] : '',
+              price: priceKey ? String(row[priceKey] || '0') : '0',
+              status: 'pending',
+              message: 'Waiting...'
+            };
+        });
         
         setProducts(productsWithStatus);
         setLogs(prev => [...prev, `Successfully parsed ${productsWithStatus.length} products from the file.`]);

@@ -50,7 +50,7 @@ export async function uploadToS3(
     if (brandName) {
         const brandSlug = slugify(brandName).slice(0, 20);
         // If product name is available, include it for more descriptive filenames.
-        const productSlug = productName ? slugify(productName).slice(0, 30) : '';
+        const productSlug = productName ? slugify(productName).slice(0, 20) : '';
         const baseName = productSlug ? `${brandSlug}--${productSlug}` : brandSlug;
         key = `uploads/brands/${baseName}--${timestamp}.${extension}`;
     } else {

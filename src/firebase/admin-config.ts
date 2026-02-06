@@ -1,3 +1,6 @@
+import { config } from 'dotenv';
+config();
+
 import admin from 'firebase-admin';
 
 // This is the shape of the service account key JSON file.

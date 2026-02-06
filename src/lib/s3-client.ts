@@ -42,17 +42,14 @@ export async function uploadToS3(
         throw new Error(s3Error || "S3 client is not configured. Check server environment variables.");
     }
     
-    const { brandName, productName } = options;
+    const { brandName } = options;
     const extension = fileName.split('.').pop()?.toLowerCase() || 'jpg';
     const timestamp = Date.now();
     let key: string;
 
     if (brandName) {
         const brandSlug = slugify(brandName).slice(0, 20);
-        // If product name is available, include it for more descriptive filenames.
-        const productSlug = productName ? slugify(productName).slice(0, 20) : '';
-        const baseName = productSlug ? `${brandSlug}--${productSlug}` : brandSlug;
-        key = `uploads/brands/${baseName}--${timestamp}.${extension}`;
+        key = `uploads/brands/${brandSlug}--${timestamp}.${extension}`;
     } else {
         // Fallback for general uploads like store logos
         const safeOriginalFileName = slugify(fileName.split('.').slice(0, -1).join('.')).slice(0, 50);

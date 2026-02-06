@@ -3,38 +3,40 @@ import admin from 'firebase-admin';
 
 // This is the shape of the service account key JSON file.
 interface ServiceAccount {
-  type: string;
-  project_id: string;
-  private_key_id: string;
-  private_key: string;
-  client_email: string;
-  client_id: string;
-  auth_uri: string;
-  token_uri: string;
-  auth_provider_x509_cert_url: string;
-  client_x509_cert_url: string;
+  projectId: string;
+  clientEmail: string;
+  privateKey: string;
 }
 
 // Function to safely parse the service account key from environment variables.
 const getServiceAccount = (): ServiceAccount | null => {
-  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY_JSON;
-  if (!serviceAccountJson) {
-    console.error(
-      'Firebase Admin initialization error: The FIREBASE_SERVICE_ACCOUNT_KEY_JSON environment variable is not set. Please create a service account in your Firebase project settings and add the JSON key to your .env file.'
+  const {
+    FIREBASE_PROJECT_ID,
+    FIREBASE_CLIENT_EMAIL,
+    FIREBASE_PRIVATE_KEY,
+  } = process.env;
+
+  const missingVars = [];
+  if (!FIREBASE_PROJECT_ID) missingVars.push('FIREBASE_PROJECT_ID');
+  if (!FIREBASE_CLIENT_EMAIL) missingVars.push('FIREBASE_CLIENT_EMAIL');
+  if (!FIREBASE_PRIVATE_KEY) missingVars.push('FIREBASE_PRIVATE_KEY');
+  
+  if (missingVars.length > 0) {
+     console.error(
+      `Firebase Admin initialization error: The following environment variables are not set: ${missingVars.join(', ')}. Please check your .env file.`
     );
     return null;
   }
-  try {
-    const parsedJson = JSON.parse(serviceAccountJson);
-    parsedJson.private_key = parsedJson.private_key.replace(/\\n/g, '\n');
-    return parsedJson;
-  } catch (error) {
-    console.error(
-      'Firebase Admin initialization error: Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY_JSON. Please ensure it is a valid, single-line JSON string in your .env file.',
-      error
-    );
-    return null;
-  }
+  
+  // The private key from the .env file has literal '\n' characters.
+  // We need to replace them with actual newline characters for the SDK.
+  const privateKey = FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
+
+  return {
+    projectId: FIREBASE_PROJECT_ID,
+    clientEmail: FIREBASE_CLIENT_EMAIL,
+    privateKey: privateKey,
+  };
 };
 
 function initializeAdminApp() {

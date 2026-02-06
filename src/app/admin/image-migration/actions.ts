@@ -1,6 +1,6 @@
 
 'use server';
-import { adminDb } from '@/firebase/admin-config';
+import { getAdminDb } from '@/firebase/admin-config';
 import { uploadToS3 } from '@/lib/s3-client';
 import type { Product, Brand } from '@/lib/types';
 
@@ -14,6 +14,7 @@ export interface ProductToMigrate {
 }
 
 export async function getProductsToMigrate(): Promise<{ products: ProductToMigrate[], error?: string }> {
+    const adminDb = getAdminDb();
     if (!adminDb) {
         return { products: [], error: "Firebase Admin SDK is not initialized. Please check your service account credentials in the .env file and restart the server." };
     }
@@ -51,6 +52,7 @@ export async function getProductsToMigrate(): Promise<{ products: ProductToMigra
 }
 
 export async function migrateImagesForProduct(productId: string, brandName: string | null): Promise<{ message: string, error?: string }> {
+    const adminDb = getAdminDb();
     if (!adminDb) {
         return { message: "Failed: Firebase Admin SDK is not initialized. Check server logs.", error: "Admin SDK not initialized" };
     }
@@ -87,7 +89,7 @@ export async function migrateImagesForProduct(productId: string, brandName: stri
                     const contentType = response.headers.get('content-type') || 'image/jpeg';
                     const fileName = image.imageUrl.split('/').pop()?.split('?')[0] || `${product.id}-${i}.jpg`;
                     
-                    const newUrl = await uploadToS3(buffer, fileName, contentType, { brandName, productName: product.name });
+                    const newUrl = await uploadToS3(buffer, fileName, contentType, { brandName });
                     newImages[i].imageUrl = newUrl;
                     migratedCount++;
                 } catch (fetchError: any) {

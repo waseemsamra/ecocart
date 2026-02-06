@@ -25,7 +25,6 @@ const getServiceAccount = (): ServiceAccount | null => {
     return null;
   }
   try {
-    // The private_key in the JSON might have escaped newlines.
     const parsedJson = JSON.parse(serviceAccountJson);
     parsedJson.private_key = parsedJson.private_key.replace(/\\n/g, '\n');
     return parsedJson;
@@ -38,19 +37,28 @@ const getServiceAccount = (): ServiceAccount | null => {
   }
 };
 
-const serviceAccount = getServiceAccount();
-
-if (!admin.apps.length && serviceAccount) {
-  try {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-    console.log('Firebase Admin SDK initialized successfully.');
-  } catch (error: any) {
-    console.error('Firebase Admin initialization error:', error.message);
+function initializeAdminApp() {
+  const serviceAccount = getServiceAccount();
+  if (serviceAccount) {
+    try {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+      console.log('Firebase Admin SDK initialized successfully.');
+    } catch (error: any) {
+      // We might get an error if it's already initialized, which is fine.
+      if (error.code !== 'app/duplicate-app') {
+        console.error('Firebase Admin initialization error:', error.message);
+      }
+    }
   }
 }
 
-const adminDb = admin.apps.length ? admin.firestore() : null;
-
-export { adminDb };
+export function getAdminDb() {
+  if (!admin.apps.length) {
+    initializeAdminApp();
+  }
+  // This can return null if initialization failed.
+  // The calling functions need to handle this.
+  return admin.apps.length > 0 ? admin.firestore() : null;
+}

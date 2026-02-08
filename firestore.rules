@@ -1,0 +1,152 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helper Functions ---
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      // The user must be authenticated.
+      // We get their own user document to check for the admin role.
+      // Since /users/{userId} is readable by any authenticated user, this get() is always permitted.
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny(['admin']);
+    }
+
+    // --- Publicly Readable Collections (Writable by Admins) ---
+    
+    match /products/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /categories/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /sizes/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /colours/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /discounts/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /shippingTimes/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /brands/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /materialTypes/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /finishTypes/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /adhesives/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /handles/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /shapes/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+     match /lids/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /heroSlides/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /trendingItems/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /productCallouts/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /productInfoSections/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // --- Settings Collections ---
+    
+    match /settings/storeDetails {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /settings/featuredBrand {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /settings/packagingPartner {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /settings/spotlight {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /settings/bestSellingDesigners {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /settings/admin {
+        allow read, write: if isAdmin();
+    }
+
+    // --- User Data Collections ---
+
+    // Any authenticated user can read user data (to break circular dependency in isAdmin).
+    // A user can only write to their own document. Admins can write to any.
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if isOwner(userId) || isAdmin();
+    }
+    
+    // A user can manage their own sub-collections. Admins can also manage them.
+    match /users/{userId}/shoppingCarts/{cartId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+     match /users/{userId}/shoppingCarts/{cartId}/{allPaths=**} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+     match /users/{userId}/shippingAddresses/{addressId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    match /users/{userId}/billingAddresses/{addressId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // --- Orders ---
+    match /orders/{orderId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
+    

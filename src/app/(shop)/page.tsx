@@ -52,6 +52,18 @@ const DesignersOnDiscount = dynamic(
   }
 );
 
+const TrendingNow = dynamic(
+  () => import('@/components/trending-now').then((mod) => mod.TrendingNow),
+  {
+    ssr: false,
+    loading: () => (
+      <section className="py-12 md:py-20">
+        <div className="container"><Skeleton className="h-96 w-full" /></div>
+      </section>
+    ),
+  }
+);
+
 const FeaturedBrandSection = dynamic(
   () => import('@/components/featured-brand').then((mod) => mod.FeaturedBrandSection),
   { 
@@ -153,110 +165,6 @@ const CelebrityCloset = dynamic(
 );
 
 
-const TrendingNowCard = ({ item }: { item: TrendingItem }) => {
-  return (
-    <Link href={item.linkUrl || '#'} className="relative group block overflow-hidden aspect-[4/3]">
-      <Image
-        src={item.imageUrl}
-        alt={item.title}
-        fill
-        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-        data-ai-hint={item.imageHint}
-        unoptimized
-      />
-      <div className="absolute inset-0 bg-black/40"></div>
-      <div className="absolute inset-0 flex items-end p-6">
-        <h3 className="text-white font-headline text-2xl font-bold">{item.title}</h3>
-      </div>
-    </Link>
-  );
-};
-
-function TrendingNowSection() {
-    const db = useFirestore();
-    const trendingItemsQuery = useMemo(() => {
-        if (!db) return null;
-        const q = query(collection(db, 'trendingItems'), orderBy('order', 'asc'), limit(4));
-        (q as any).__memo = true;
-        return q;
-    }, [db]);
-
-    const { data: items, isLoading } = useCollection<TrendingItem>(trendingItemsQuery);
-
-    const defaultItems: TrendingItem[] = useMemo(() => [
-        {
-            id: 'default-1',
-            title: 'Custom Tapes',
-            linkUrl: '/products',
-            imageUrl: PlaceHolderImages.find(img => img.id === 'trending-tapes')?.imageUrl || '',
-            imageHint: PlaceHolderImages.find(img => img.id === 'trending-tapes')?.imageHint || '',
-            order: 1
-        },
-        {
-            id: 'default-2',
-            title: 'Coffee Bags',
-            linkUrl: '/products',
-            imageUrl: PlaceHolderImages.find(img => img.id === 'trending-coffee-bags')?.imageUrl || '',
-            imageHint: PlaceHolderImages.find(img => img.id === 'trending-coffee-bags')?.imageHint || '',
-            order: 2
-        },
-        {
-            id: 'default-3',
-            title: 'Product Boxes',
-            linkUrl: '/products',
-            imageUrl: PlaceHolderImages.find(img => img.id === 'trending-product-boxes')?.imageUrl || '',
-            imageHint: PlaceHolderImages.find(img => img.id === 'trending-product-boxes')?.imageHint || '',
-            order: 3
-        },
-        {
-            id: 'default-4',
-            title: 'Tote Bags',
-            linkUrl: '/products',
-            imageUrl: PlaceHolderImages.find(img => img.id === 'trending-totes')?.imageUrl || '',
-            imageHint: PlaceHolderImages.find(img => img.id === 'trending-totes')?.imageHint || '',
-            order: 4
-        }
-    ].filter(item => item.imageUrl), []);
-
-
-    if (isLoading) {
-        return (
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="aspect-[4/3] bg-muted animate-pulse"></div>
-                ))}
-            </div>
-        );
-    }
-    
-    const itemsToRender = items && items.length > 0 ? items : defaultItems;
-
-    if (itemsToRender.length === 0) {
-        return (
-            <div className="bg-muted">
-                <div className="container py-12 text-center text-muted-foreground">
-                    <h3 className="font-headline text-xl font-bold">"Trending Now" is ready to shine!</h3>
-                    <p className="mt-2">To display your trending items, head over to the admin panel:</p>
-                    <p className="font-semibold mt-1">
-                        <Link href="/admin/content/trending-now" className="text-primary underline">
-                            Admin &gt; CMS &gt; Trending Now
-                        </Link>
-                    </p>
-                </div>
-            </div>
-        );
-    }
-    
-    return (
-        <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border">
-            {itemsToRender.map((item) => (
-                <TrendingNowCard key={item.id} item={item} />
-            ))}
-        </div>
-    );
-}
-
-
 export default function HomePage() {
   return (
     <>
@@ -269,12 +177,7 @@ export default function HomePage() {
 
       <DesignersOnDiscount />
 
-      <section>
-        <div className="container pt-12 md:pt-20">
-            <h2 className="font-headline text-4xl font-bold mb-8">Trending now</h2>
-        </div>
-        <TrendingNowSection />
-      </section>
+      <TrendingNow />
 
       <FeaturedBrandSection />
 
@@ -296,3 +199,5 @@ export default function HomePage() {
     </>
   );
 }
+
+    

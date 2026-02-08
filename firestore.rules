@@ -76,10 +76,6 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
-    match /trendingItems/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
     match /productCallouts/{docId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -149,4 +145,6 @@ service cloud.firestore {
     }
   }
 }
+    
+
     

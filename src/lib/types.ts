@@ -15,6 +15,7 @@ export interface Product {
   showInWeddingTales?: boolean;
   showInDesignersOnDiscount?: boolean;
   showInModernMustHaves?: boolean;
+  showInTrendingNow?: boolean;
   packagingPartnerTags?: ('new-in' | 'most-popular' | 'ready-to-ship')[];
   
   // Option relationships
@@ -198,17 +199,6 @@ export interface HeroSlide {
   createdAt?: any;
   updatedAt?: any;
 }
-
-export interface TrendingItem {
-  id: string;
-  title: string;
-  linkUrl?: string;
-  imageUrl: string;
-  imageHint: string;
-  order: number;
-  createdAt?: any;
-  updatedAt?: any;
-}
     
 export interface FeaturedBrand {
   id: string;
@@ -261,3 +251,5 @@ export interface ProductInfoSection {
     createdAt?: any;
     updatedAt?: any;
 }
+
+    

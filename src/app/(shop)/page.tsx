@@ -192,7 +192,19 @@ function TrendingNowSection() {
     }
 
     if (!items || items.length === 0) {
-        return null; // Don't render anything if there are no items
+        return (
+            <div className="bg-muted">
+                <div className="container py-12 text-center text-muted-foreground">
+                    <h3 className="font-headline text-xl font-bold">"Trending Now" is ready to shine!</h3>
+                    <p className="mt-2">To display your trending items, head over to the admin panel:</p>
+                    <p className="font-semibold mt-1">
+                        <Link href="/admin/content/trending-now" className="text-primary underline">
+                            Admin &gt; CMS &gt; Trending Now
+                        </Link>
+                    </p>
+                </div>
+            </div>
+        );
     }
     
     return (

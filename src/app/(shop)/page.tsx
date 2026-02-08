@@ -153,7 +153,7 @@ const CelebrityCloset = dynamic(
 
 const TrendingNowCard = ({ item }: { item: TrendingItem }) => {
   return (
-    <Link href="#" className="relative group block overflow-hidden aspect-[4/3]">
+    <Link href={item.linkUrl || '#'} className="relative group block overflow-hidden aspect-[4/3]">
       <Image
         src={item.imageUrl}
         alt={item.title}

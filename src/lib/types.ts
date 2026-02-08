@@ -202,6 +202,7 @@ export interface HeroSlide {
 export interface TrendingItem {
   id: string;
   title: string;
+  linkUrl?: string;
   imageUrl: string;
   imageHint: string;
   order: number;

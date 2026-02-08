@@ -25,6 +25,7 @@ const s3BaseUrl = 'https://ecocloths.s3.us-west-2.amazonaws.com';
 
 const itemSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
+  linkUrl: z.string().optional(),
   imageUrl: z.string().min(1, 'Image path is required.'),
   imageHint: z.string().optional(),
   order: z.coerce.number().default(0),
@@ -44,7 +45,7 @@ export default function AdminTrendingNowPage() {
     
     const form = useForm<ItemFormValues>({
         resolver: zodResolver(itemSchema),
-        defaultValues: { title: '', imageUrl: '', imageHint: '', order: 0 }
+        defaultValues: { title: '', linkUrl: '', imageUrl: '', imageHint: '', order: 0 }
     });
     
     const itemsQuery = useMemo(() => {
@@ -73,6 +74,7 @@ export default function AdminTrendingNowPage() {
         if (dialogState.open && dialogState.item) {
             form.reset({
                 title: dialogState.item.title || '',
+                linkUrl: dialogState.item.linkUrl || '',
                 imageUrl: dialogState.item.imageUrl || '',
                 imageHint: dialogState.item.imageHint || '',
                 order: dialogState.item.order || 0,
@@ -80,7 +82,7 @@ export default function AdminTrendingNowPage() {
             setImagePreview(dialogState.item.imageUrl || null);
             setImageFile(null);
         } else {
-            form.reset({ title: '', imageUrl: '', imageHint: '', order: items?.length || 0 });
+            form.reset({ title: '', linkUrl: '', imageUrl: '', imageHint: '', order: items?.length || 0 });
             setImagePreview(null);
             setImageFile(null);
         }
@@ -267,6 +269,9 @@ export default function AdminTrendingNowPage() {
                         <form onSubmit={form.handleSubmit(handleSaveItem)} className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
                             <FormField control={form.control} name="title" render={({ field }) => (
                                 <FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="linkUrl" render={({ field }) => (
+                                <FormItem><FormLabel>Link URL</FormLabel><FormControl><Input {...field} placeholder="/products?tag=trending" /></FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={form.control} name="order" render={({ field }) => (
                                 <FormItem><FormLabel>Order</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>

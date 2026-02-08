@@ -5,10 +5,10 @@ import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, writeBatch, where, limit } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useFirestore } from '@/firebase/provider';
-import type { TrendingItem } from '@/lib/types';
+import type { TrendingItem, Brand, Product } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
@@ -18,8 +18,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { MoreHorizontal, Edit, Trash2, PlusCircle, Loader2, UploadCloud, Copy, ArrowUp, ArrowDown } from 'lucide-react';
 import { format } from 'date-fns';
+import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const s3BaseUrl = 'https://ecocloths.s3.us-west-2.amazonaws.com';
 
@@ -43,6 +47,8 @@ export default function AdminTrendingNowPage() {
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     
+    const [selectedBrandId, setSelectedBrandId] = useState<string>('');
+
     const form = useForm<ItemFormValues>({
         resolver: zodResolver(itemSchema),
         defaultValues: { title: '', linkUrl: '', imageUrl: '', imageHint: '', order: 0 }
@@ -56,6 +62,23 @@ export default function AdminTrendingNowPage() {
     }, [db]);
 
     const { data: items, isLoading: isLoadingData, error } = useCollection<TrendingItem>(itemsQuery);
+    
+    const brandsQuery = useMemo(() => {
+        if (!db) return null;
+        const q = query(collection(db, 'brands'), orderBy('name'));
+        (q as any).__memo = true;
+        return q;
+    }, [db]);
+    const { data: brands, isLoading: isLoadingBrands } = useCollection<Brand>(brandsQuery);
+
+    const productsByBrandQuery = useMemo(() => {
+        if (!db || !selectedBrandId) return null;
+        const q = query(collection(db, 'products'), where('brandIds', 'array-contains', selectedBrandId), limit(100));
+        (q as any).__memo = true;
+        return q;
+    }, [db, selectedBrandId]);
+    const { data: productsForBrand, isLoading: isLoadingProducts } = useCollection<Product>(productsByBrandQuery);
+    
     const isLoading = authLoading || isLoadingData;
     
     const imageUrlPath = form.watch('imageUrl');
@@ -86,6 +109,7 @@ export default function AdminTrendingNowPage() {
             setImagePreview(null);
             setImageFile(null);
         }
+        setSelectedBrandId('');
     }, [dialogState, form, items]);
 
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -266,7 +290,7 @@ export default function AdminTrendingNowPage() {
                         <DialogDescription>Fill in the details for your trending item.</DialogDescription>
                     </DialogHeader>
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(handleSaveItem)} className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
+                        <form onSubmit={form.handleSubmit(handleSaveItem)} className="space-y-6 py-4 max-h-[80vh] overflow-y-auto pr-4">
                             <FormField control={form.control} name="title" render={({ field }) => (
                                 <FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                             )} />
@@ -297,6 +321,60 @@ export default function AdminTrendingNowPage() {
                              <FormField control={form.control} name="imageHint" render={({ field }) => (
                                 <FormItem><FormLabel>AI Image Hint</FormLabel><FormControl><Input {...field} placeholder="e.g., custom tape" /></FormControl><FormMessage /></FormItem>
                             )} />
+
+                            <Separator className="my-6" />
+                            <div className="space-y-4">
+                                <h3 className="text-md font-semibold text-muted-foreground">Or Pre-fill From a Product</h3>
+                                <div className="space-y-2">
+                                    <Label>Select Brand</Label>
+                                    <Select value={selectedBrandId} onValueChange={setSelectedBrandId}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a brand to see products" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {isLoadingBrands ? <SelectItem value="loading" disabled>Loading brands...</SelectItem> : 
+                                                brands?.map(brand => <SelectItem key={brand.id} value={brand.id}>{brand.name}</SelectItem>)
+                                            }
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {selectedBrandId && (
+                                    <div className="space-y-2">
+                                        <Label>Select Product to Feature</Label>
+                                        <ScrollArea className="h-60 rounded-md border">
+                                            <div className="p-2 space-y-1">
+                                                {isLoadingProducts && <div className="flex items-center justify-center p-4"><Loader2 className="h-5 w-5 animate-spin" /></div>}
+                                                {!isLoadingProducts && productsForBrand?.length === 0 && (
+                                                    <p className="p-4 text-center text-sm text-muted-foreground">No products found for this brand.</p>
+                                                )}
+                                                {productsForBrand?.map(product => (
+                                                    <div key={product.id} className="flex items-center justify-between gap-2 rounded-md p-2 hover:bg-muted">
+                                                        <span className="text-sm truncate">{product.name}</span>
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => {
+                                                                const imageUrl = product.images?.[0]?.imageUrl || '';
+                                                                const relativeImageUrl = imageUrl.startsWith(s3BaseUrl) ? imageUrl.replace(s3BaseUrl, '') : imageUrl;
+
+                                                                form.setValue('title', product.name, { shouldDirty: true });
+                                                                form.setValue('linkUrl', `/products/${product.slug || product.id}`, { shouldDirty: true });
+                                                                form.setValue('imageUrl', relativeImageUrl, { shouldDirty: true });
+                                                                form.setValue('imageHint', product.images?.[0]?.imageHint || '', { shouldDirty: true });
+                                                                toast({ title: 'Fields populated', description: `Data from "${product.name}" has been filled in.` });
+                                                            }}
+                                                        >
+                                                            Select
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </ScrollArea>
+                                    </div>
+                                )}
+                            </div>
 
                             <DialogFooter>
                                 <Button variant="outline" type="button" onClick={() => handleOpenChange(false)}>Cancel</Button>

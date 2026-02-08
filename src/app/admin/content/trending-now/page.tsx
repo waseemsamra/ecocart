@@ -24,6 +24,7 @@ import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { slugify } from '@/lib/utils';
 
 const s3BaseUrl = 'https://ecocloths.s3.us-west-2.amazonaws.com';
 

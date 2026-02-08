@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -13,6 +14,7 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { HeroCarousel } from '@/components/hero-carousel';
 import { ShopByCategory } from '@/components/shop-by-category';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const LowMinimumMustHaves = dynamic(
   () => import('@/components/low-minimum-must-haves').then((mod) => mod.LowMinimumMustHaves),
@@ -181,6 +183,42 @@ function TrendingNowSection() {
 
     const { data: items, isLoading } = useCollection<TrendingItem>(trendingItemsQuery);
 
+    const defaultItems: TrendingItem[] = useMemo(() => [
+        {
+            id: 'default-1',
+            title: 'Custom Tapes',
+            linkUrl: '/products',
+            imageUrl: PlaceHolderImages.find(img => img.id === 'trending-tapes')?.imageUrl || '',
+            imageHint: PlaceHolderImages.find(img => img.id === 'trending-tapes')?.imageHint || '',
+            order: 1
+        },
+        {
+            id: 'default-2',
+            title: 'Coffee Bags',
+            linkUrl: '/products',
+            imageUrl: PlaceHolderImages.find(img => img.id === 'trending-coffee-bags')?.imageUrl || '',
+            imageHint: PlaceHolderImages.find(img => img.id === 'trending-coffee-bags')?.imageHint || '',
+            order: 2
+        },
+        {
+            id: 'default-3',
+            title: 'Product Boxes',
+            linkUrl: '/products',
+            imageUrl: PlaceHolderImages.find(img => img.id === 'trending-product-boxes')?.imageUrl || '',
+            imageHint: PlaceHolderImages.find(img => img.id === 'trending-product-boxes')?.imageHint || '',
+            order: 3
+        },
+        {
+            id: 'default-4',
+            title: 'Tote Bags',
+            linkUrl: '/products',
+            imageUrl: PlaceHolderImages.find(img => img.id === 'trending-totes')?.imageUrl || '',
+            imageHint: PlaceHolderImages.find(img => img.id === 'trending-totes')?.imageHint || '',
+            order: 4
+        }
+    ].filter(item => item.imageUrl), []);
+
+
     if (isLoading) {
         return (
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border">
@@ -190,8 +228,10 @@ function TrendingNowSection() {
             </div>
         );
     }
+    
+    const itemsToRender = items && items.length > 0 ? items : defaultItems;
 
-    if (!items || items.length === 0) {
+    if (itemsToRender.length === 0) {
         return (
             <div className="bg-muted">
                 <div className="container py-12 text-center text-muted-foreground">
@@ -209,7 +249,7 @@ function TrendingNowSection() {
     
     return (
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border">
-            {items.map((item) => (
+            {itemsToRender.map((item) => (
                 <TrendingNowCard key={item.id} item={item} />
             ))}
         </div>

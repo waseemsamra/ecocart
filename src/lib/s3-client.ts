@@ -34,30 +34,35 @@ function getS3Client(): S3Client {
 
 
 export async function uploadToS3(
-    buffer: Buffer, 
-    fileName: string, 
-    contentType: string, 
+    buffer: Buffer,
+    fileName: string,
+    contentType: string,
     options: { brandName?: string | null; productName?: string | null } = {}
 ): Promise<string> {
     const client = getS3Client();
     const { AWS_S3_BUCKET_NAME } = process.env;
-    
+
     if (!AWS_S3_BUCKET_NAME) {
-         throw new Error("AWS_S3_BUCKET_NAME environment variable is not set.");
+        throw new Error("AWS_S3_BUCKET_NAME environment variable is not set.");
     }
-    
-    const { brandName } = options;
+
+    const { brandName, productName } = options;
     const extension = fileName.split('.').pop()?.toLowerCase() || 'jpg';
     const timestamp = Date.now();
     let key: string;
 
-    if (brandName) {
+    const safeOriginalFileName = slugify(fileName.split('.').slice(0, -1).join('.')).slice(0, 50) || 'image';
+
+    if (brandName && productName) {
         const brandSlug = slugify(brandName).slice(0, 20);
-        key = `uploads/brands/${brandSlug}--${timestamp}.${extension}`;
+        const productSlug = slugify(productName).slice(0, 30);
+        key = `uploads/products/${brandSlug}/${productSlug}-${timestamp}.${extension}`;
+    } else if (brandName) {
+        const brandSlug = slugify(brandName).slice(0, 20);
+        key = `uploads/brands/${brandSlug}/${safeOriginalFileName}-${timestamp}.${extension}`;
     } else {
         // Fallback for general uploads like store logos
-        const safeOriginalFileName = slugify(fileName.split('.').slice(0, -1).join('.')).slice(0, 50);
-        key = `uploads/general/${timestamp}-${safeOriginalFileName}.${extension}`;
+        key = `uploads/general/${safeOriginalFileName}-${timestamp}.${extension}`;
     }
 
 

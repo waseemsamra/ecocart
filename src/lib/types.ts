@@ -20,6 +20,7 @@ export interface Product {
   showInDesignersOnDiscount?: boolean;
   showInModernMustHaves?: boolean;
   showInTrendingNow?: boolean;
+  showInNewArrivals?: boolean;
   packagingPartnerTags?: ('new-in' | 'most-popular' | 'ready-to-ship')[];
   
   // Option relationships

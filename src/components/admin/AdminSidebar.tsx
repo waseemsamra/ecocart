@@ -204,6 +204,13 @@ export function AdminSidebar() {
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
+                    <SidebarMenuSubButton asChild isActive={pathname === '/admin/content/new-arrivals'}>
+                      <Link href="/admin/content/new-arrivals">
+                        New Arrivals
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
                     <SidebarMenuSubButton asChild isActive={pathname === '/admin/content/trending-now'}>
                      <Link href="/admin/content/trending-now">
                         Trending Now

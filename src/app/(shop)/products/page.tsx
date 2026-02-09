@@ -28,6 +28,7 @@ function ProductsPageContent() {
   const showInWeddingTales = searchParams.get('showInWeddingTales') === 'true';
   const showInDesignersOnDiscount = searchParams.get('showInDesignersOnDiscount') === 'true';
   const showInTrendingNow = searchParams.get('showInTrendingNow') === 'true';
+  const showInNewArrivals = searchParams.get('showInNewArrivals') === 'true';
   const packagingPartnerTag = searchParams.get('tag');
 
   const initialFilters = useMemo(() => {
@@ -64,6 +65,10 @@ function ProductsPageContent() {
     if (showInTrendingNow) {
         q = query(q, where('showInTrendingNow', '==', true));
     }
+    
+    if (showInNewArrivals) {
+        q = query(q, where('showInNewArrivals', '==', true));
+    }
 
     if (packagingPartnerTag) {
         q = query(q, where('packagingPartnerTags', 'array-contains', packagingPartnerTag));
@@ -71,7 +76,7 @@ function ProductsPageContent() {
 
     (q as any).__memo = true;
     return q;
-  }, [filters, db, showInWeddingTales, showInDesignersOnDiscount, showInTrendingNow, packagingPartnerTag]);
+  }, [filters, db, showInWeddingTales, showInDesignersOnDiscount, showInTrendingNow, showInNewArrivals, packagingPartnerTag]);
 
   const { data: products, isLoading: isLoadingData, error } = useCollection<Product>(productsQuery);
   const isLoading = authLoading || isLoadingData;
@@ -80,17 +85,19 @@ function ProductsPageContent() {
     if (showInWeddingTales) return "Wedding Tales Collection";
     if (showInDesignersOnDiscount) return "Designers on Discount";
     if (showInTrendingNow) return "Trending Now";
+    if (showInNewArrivals) return "New Arrivals";
     if (packagingPartnerTag === 'ready-to-ship') return "Ready to Ship Stunners";
     return "Find Your Perfect Packaging";
-  }, [showInWeddingTales, showInDesignersOnDiscount, showInTrendingNow, packagingPartnerTag]);
+  }, [showInWeddingTales, showInDesignersOnDiscount, showInTrendingNow, showInNewArrivals, packagingPartnerTag]);
 
   const pageDescription = useMemo(() => {
     if (showInWeddingTales) return "A curated collection of our most romantic and elegant products, perfect for any wedding.";
     if (showInDesignersOnDiscount) return "Discover exclusive deals from top designers, available for a limited time.";
     if (showInTrendingNow) return "Check out what's currently popular with our customers.";
+    if (showInNewArrivals) return "Explore the latest additions to our collection.";
     if (packagingPartnerTag === 'ready-to-ship') return "These items are in stock and ready to ship out immediately.";
     return "Use our advanced filters to discover products tailored to your brand's needs. Select materials, sizes, colors, and more.";
-  }, [showInWeddingTales, showInDesignersOnDiscount, showInTrendingNow, packagingPartnerTag]);
+  }, [showInWeddingTales, showInDesignersOnDiscount, showInTrendingNow, showInNewArrivals, packagingPartnerTag]);
 
   const paginatedProducts = useMemo(() => {
     if (!products) return [];

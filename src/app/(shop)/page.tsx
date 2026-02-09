@@ -28,6 +28,18 @@ const LowMinimumMustHaves = dynamic(
   }
 );
 
+const NewArrivals = dynamic(
+  () => import('@/components/new-arrivals').then((mod) => mod.NewArrivals),
+  {
+    ssr: false,
+    loading: () => (
+      <section className="py-12 md:py-20">
+        <div className="container"><Skeleton className="h-96 w-full" /></div>
+      </section>
+    ),
+  }
+);
+
 const WeddingTales = dynamic(
   () => import('@/components/wedding-tales').then((mod) => mod.WeddingTales),
   { 
@@ -172,6 +184,8 @@ export default function HomePage() {
       <ShopByCategory />
       
       <LowMinimumMustHaves />
+
+      <NewArrivals />
 
       <WeddingTales />
 

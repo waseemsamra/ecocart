@@ -19,9 +19,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Trash2, PlusCircle, UploadCloud } from 'lucide-react';
+import { Loader2, Trash2, PlusCircle, UploadCloud, Star } from 'lucide-react';
 import Image from 'next/image';
 import { slugify } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 const s3BaseUrl = 'https://ecocloths.s3.us-west-2.amazonaws.com';
 
@@ -30,6 +31,7 @@ const imageSchema = z.object({
   imageUrl: z.string().optional(),
   imageHint: z.string().optional(),
   description: z.string().optional(),
+  isPrimary: z.boolean().optional(),
 });
 
 const productSchema = z.object({
@@ -94,7 +96,8 @@ export function ProductForm({ product }: { product?: Product }) {
           originalPrice: product.originalPrice || undefined,
           images: product.images?.map(img => ({
               ...img,
-              imageUrl: img.imageUrl?.startsWith(s3BaseUrl) ? img.imageUrl.replace(s3BaseUrl, '') : (img.imageUrl || '')
+              imageUrl: img.imageUrl?.startsWith(s3BaseUrl) ? img.imageUrl.replace(s3BaseUrl, '') : (img.imageUrl || ''),
+              isPrimary: img.isPrimary || false,
           })) || [],
           showInWeddingTales: product.showInWeddingTales || false,
           showInDesignersOnDiscount: product.showInDesignersOnDiscount || false,
@@ -262,6 +265,16 @@ export function ProductForm({ product }: { product?: Product }) {
     newImageFiles.splice(index, 1);
     setImageFiles(newImageFiles);
   };
+  
+  const handleSetPrimaryImage = (selectedIndex: number) => {
+    const currentImages = form.getValues('images') || [];
+    const updatedImages = currentImages.map((image, index) => ({
+      ...image,
+      isPrimary: index === selectedIndex,
+    }));
+    form.setValue('images', updatedImages, { shouldDirty: true });
+  };
+
 
   const onSubmit = async (data: ProductFormValues) => {
     if (!db) {
@@ -375,7 +388,7 @@ export function ProductForm({ product }: { product?: Product }) {
                 <Card>
                     <CardHeader>
                         <CardTitle>Images</CardTitle>
-                        <CardDescription>Add or manage product images.</CardDescription>
+                        <CardDescription>Add or manage product images. Click the star to set a primary image.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
@@ -439,13 +452,22 @@ export function ProductForm({ product }: { product?: Product }) {
                                             )}
                                         />
                                     </div>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleSetPrimaryImage(index)}
+                                      title="Set as primary image"
+                                    >
+                                      <Star className={cn("h-5 w-5", field.isPrimary ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
+                                    </Button>
                                     <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveImage(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                                 </div>
                             );
                         })}
                         <Button type="button" variant="outline" onClick={() => {
                             if (imagesField.length < 10) {
-                                appendImage({ id: crypto.randomUUID(), imageUrl: '', imageHint: '', description: '' });
+                                appendImage({ id: crypto.randomUUID(), imageUrl: '', imageHint: '', description: '', isPrimary: imagesField.length === 0 });
                                 const newImageFiles = [...imageFiles, null];
                                 setImageFiles(newImageFiles);
                             } else {
@@ -715,3 +737,5 @@ export function ProductForm({ product }: { product?: Product }) {
     </Form>
   );
 }
+
+    

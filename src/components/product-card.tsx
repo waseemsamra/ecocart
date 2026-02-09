@@ -13,10 +13,10 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, layout = 'grid', onClick }: ProductCardProps) {
-  const image = product.images?.[0];
-  const hoverImage = product.images?.[1];
+  const primaryImage = product.images?.find(img => img.isPrimary) || product.images?.[0];
+  const hoverImage = product.images?.find(img => img.id !== primaryImage?.id && img.imageUrl);
 
-  const imageUrl = getFullImageUrl(image?.imageUrl);
+  const imageUrl = getFullImageUrl(primaryImage?.imageUrl);
   const hoverImageUrl = getFullImageUrl(hoverImage?.imageUrl);
   
   const productUrl = `/products/${product.slug || product.id}`;
@@ -30,13 +30,13 @@ export function ProductCard({ product, layout = 'grid', onClick }: ProductCardPr
                          <>
                             <Image
                                 src={imageUrl}
-                                alt={image?.description || product.name}
+                                alt={primaryImage?.description || product.name}
                                 fill
                                 className={cn(
                                     "object-cover object-top transition-opacity duration-300",
                                     hoverImageUrl && "group-hover:opacity-0"
                                 )}
-                                data-ai-hint={image?.imageHint}
+                                data-ai-hint={primaryImage?.imageHint}
                                 unoptimized
                             />
                             {hoverImageUrl && (
@@ -83,13 +83,13 @@ export function ProductCard({ product, layout = 'grid', onClick }: ProductCardPr
             <>
                 <Image
                     src={imageUrl}
-                    alt={image?.description || product.name}
+                    alt={primaryImage?.description || product.name}
                     fill
                     className={cn(
                         "object-cover object-top transition-opacity duration-300",
                         hoverImageUrl ? "group-hover:opacity-0" : "group-hover:scale-105"
                     )}
-                    data-ai-hint={image?.imageHint}
+                    data-ai-hint={primaryImage?.imageHint}
                     unoptimized
                 />
                 {hoverImageUrl && (
@@ -116,3 +116,5 @@ export function ProductCard({ product, layout = 'grid', onClick }: ProductCardPr
     </Link>
   );
 }
+
+    

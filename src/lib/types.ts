@@ -1,4 +1,8 @@
-import type { ImagePlaceholder } from './placeholder-images';
+import type { ImagePlaceholder as BaseImagePlaceholder } from './placeholder-images';
+
+export interface ImagePlaceholder extends BaseImagePlaceholder {
+  isPrimary?: boolean;
+}
 
 export interface Product {
   id: string;
@@ -252,4 +256,5 @@ export interface ProductInfoSection {
     updatedAt?: any;
 }
 
+    
     

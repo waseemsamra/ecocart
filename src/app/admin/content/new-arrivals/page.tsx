@@ -68,7 +68,7 @@ export default function AdminNewArrivalsPage() {
     if (!allProducts) return { featuredProducts: [], availableProducts: [] };
     const featured = allProducts.filter(p => p.showInNewArrivals);
     const available = allProducts.filter(p => !p.showInNewArrivals);
-    return { featuredProducts, availableProducts };
+    return { featuredProducts: featured, availableProducts: available };
   }, [allProducts]);
 
   const filteredFeatured = useMemo(() => {

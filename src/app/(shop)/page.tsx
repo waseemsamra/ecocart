@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -9,7 +8,6 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 import { useFirestore } from '@/firebase/provider';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { useMemo } from 'react';
-import type { TrendingItem } from '@/lib/types';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { HeroCarousel } from '@/components/hero-carousel';
@@ -213,5 +211,3 @@ export default function HomePage() {
     </>
   );
 }
-
-    

@@ -3,12 +3,12 @@
 // Firebase project, and security is enforced by Firestore Security Rules.
 
 export const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyDESV16oEMoLNVerPqrziE3wrdXhjGaHok",
+  authDomain: "clothcard-6aa62.firebaseapp.com",
+  projectId: "clothcard-6aa62",
+  storageBucket: "clothcard-6aa62.firebasestorage.app",
+  messagingSenderId: "1005428583335",
+  appId: "1:1005428583335:web:7d87c8155ff8f31b656482"
 };
 
 // A function to check if the Firebase configuration is valid.

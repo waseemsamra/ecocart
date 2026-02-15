@@ -382,7 +382,7 @@ export default function AdminProductsPage() {
                                             alt={product.name}
                                             className="aspect-square rounded-md object-cover"
                                             height="64"
-                                            src={getFullImageUrl(product.images?.[0]?.imageUrl) || 'https://placehold.co/64x64'}
+                                            src={getFullImageUrl(product.images?.find(img => img.isPrimary)?.imageUrl || product.images?.[0]?.imageUrl) || 'https://placehold.co/64x64'}
                                             width="64"
                                             unoptimized
                                             loading="lazy"

@@ -256,6 +256,3 @@ export interface ProductInfoSection {
     createdAt?: any;
     updatedAt?: any;
 }
-
-    
-    

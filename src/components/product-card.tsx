@@ -116,5 +116,3 @@ export function ProductCard({ product, layout = 'grid', onClick }: ProductCardPr
     </Link>
   );
 }
-
-    

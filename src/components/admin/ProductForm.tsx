@@ -737,5 +737,3 @@ export function ProductForm({ product }: { product?: Product }) {
     </Form>
   );
 }
-
-    

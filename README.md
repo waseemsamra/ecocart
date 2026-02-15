@@ -1,4 +1,3 @@
-
 # ClothCard
 
 This is the ClothCard e-commerce application, built with Next.js and Firebase.

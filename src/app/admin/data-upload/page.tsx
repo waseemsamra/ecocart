@@ -63,7 +63,7 @@ export default function DataUploadPage() {
         }
 
         const productsWithStatus: ParsedProductWithStatus[] = jsonData.map((row) => {
-            const findKey = (keyName: string) => Object.keys(row).find(k => k.toLowerCase().replace(/[-_\s]/g, '') === keyName.toLowerCase().replace(/[-_\s]/g, ''));
+            const findKey = (keyName: string) => Object.keys(row).find(k => k.trim().toLowerCase().replace(/[-_\s]/g, '') === keyName.toLowerCase().replace(/[-_\s]/g, ''));
             
             const brandKey = findKey('brand');
             const frontPicKey = findKey('front-pic');

@@ -63,7 +63,14 @@ export default function DataUploadPage() {
         }
 
         const productsWithStatus: ParsedProductWithStatus[] = jsonData.map((row) => {
-            const findKey = (keyName: string) => Object.keys(row).find(k => k.trim().toLowerCase().replace(/[-_\s]/g, '') === keyName.toLowerCase().replace(/[-_\s]/g, ''));
+            // Robust key finding function: ignores case, spaces, and special characters.
+            const findKey = (keyName: string): string | undefined => {
+                const normalizedKeyName = keyName.toLowerCase().replace(/[^a-z0-9]/gi, '');
+                return Object.keys(row).find(k => {
+                    const normalizedK = k.trim().toLowerCase().replace(/[^a-z0-9]/gi, '');
+                    return normalizedK === normalizedKeyName;
+                });
+            };
             
             const brandKey = findKey('brand');
             const frontPicKey = findKey('front-pic');
@@ -74,13 +81,13 @@ export default function DataUploadPage() {
             const descriptionKey = findKey('description');
 
             return {
-              brand: brandKey ? row[brandKey] : '',
-              frontPic: frontPicKey ? row[frontPicKey] : '',
-              hoverPic: hoverPicKey ? row[hoverPicKey] : '',
-              sidePic: sidePicKey ? row[sidePicKey] : '',
-              title: titleKey ? row[titleKey] : '',
-              price: priceKey ? String(row[priceKey] || '0') : '0',
-              description: descriptionKey ? row[descriptionKey] : '',
+              brand: brandKey && row[brandKey] ? String(row[brandKey]) : '',
+              frontPic: frontPicKey && row[frontPicKey] ? String(row[frontPicKey]) : '',
+              hoverPic: hoverPicKey && row[hoverPicKey] ? String(row[hoverPicKey]) : '',
+              sidePic: sidePicKey && row[sidePicKey] ? String(row[sidePicKey]) : '',
+              title: titleKey && row[titleKey] ? String(row[titleKey]) : '',
+              price: priceKey && row[priceKey] ? String(row[priceKey] || '0') : '0',
+              description: descriptionKey && row[descriptionKey] ? String(row[descriptionKey]) : '',
               status: 'pending',
               message: 'Waiting...'
             };

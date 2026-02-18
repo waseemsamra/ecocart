@@ -55,7 +55,6 @@ export default function DataUploadPage() {
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         
-        // This will parse the sheet into an array of objects, using the first row as headers.
         const jsonData: any[] = XLSX.utils.sheet_to_json(sheet);
         
         if (jsonData.length === 0) {
@@ -63,16 +62,14 @@ export default function DataUploadPage() {
           return;
         }
 
-        // Map from JSON data to our product structure. Handles potential header variations.
         const productsWithStatus: ParsedProductWithStatus[] = jsonData.map((row) => {
-            // Find keys case-insensitively and ignoring hyphens/underscores/spaces
             const findKey = (keyName: string) => Object.keys(row).find(k => k.toLowerCase().replace(/[-_\s]/g, '') === keyName.toLowerCase().replace(/[-_\s]/g, ''));
             
             const brandKey = findKey('brand');
             const frontPicKey = findKey('front-pic');
             const hoverPicKey = findKey('hover-pic');
             const sidePicKey = findKey('side_pic');
-            const titleKey = findKey('product-title'); // this now matches product_title
+            const titleKey = findKey('product-title');
             const priceKey = findKey('price');
             const descriptionKey = findKey('description');
 
@@ -117,7 +114,6 @@ export default function DataUploadPage() {
     setLogs(['Starting upload process...']);
     setProcessedCount(0);
     
-    // Step 1: Handle brands
     const brandsRef = collection(db, 'brands');
     const uniqueBrandNamesFromFile = [...new Set(products.map(p => p.brand.trim()).filter(Boolean))];
     const existingBrandsMap = new Map<string, string>();
@@ -141,7 +137,6 @@ export default function DataUploadPage() {
     await brandBatch.commit();
     setLogs(prev => [...prev, 'Brand setup complete. Starting product uploads.']);
 
-    // Step 2: Process products one by one
     const productsRef = collection(db, 'products');
     for (let i = 0; i < products.length; i++) {
         let productData = products[i];
@@ -171,7 +166,6 @@ export default function DataUploadPage() {
             const description = productData.description.trim();
             if (!description) throw new Error("Description is empty.");
 
-            // Upload images
             updateProductStatus(i, 'processing', 'Uploading images...');
             const uploadedImages: Omit<ImagePlaceholder, 'id'>[] = [];
             
@@ -199,7 +193,6 @@ export default function DataUploadPage() {
             const sideImage = await uploadImage(productData.sidePic, 'Side View', 'side view');
             if (sideImage) uploadedImages.push(sideImage);
 
-            // Save product to Firestore
             updateProductStatus(i, 'processing', 'Saving to database...');
             const newProductRef = doc(productsRef);
             const productDocData = {

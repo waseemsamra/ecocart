@@ -19,8 +19,10 @@ interface ParsedProduct {
   brand: string;
   frontPic: string;
   hoverPic: string;
+  sidePic: string;
   title: string;
   price: string;
+  description: string;
 }
 
 type ProductStatus = 'pending' | 'processing' | 'success' | 'error' | 'skipped';
@@ -69,15 +71,19 @@ export default function DataUploadPage() {
             const brandKey = findKey('brand');
             const frontPicKey = findKey('front-pic');
             const hoverPicKey = findKey('hover-pic');
+            const sidePicKey = findKey('side_pic');
             const titleKey = findKey('product-title'); // this now matches product_title
             const priceKey = findKey('price');
+            const descriptionKey = findKey('description');
 
             return {
               brand: brandKey ? row[brandKey] : '',
               frontPic: frontPicKey ? row[frontPicKey] : '',
               hoverPic: hoverPicKey ? row[hoverPicKey] : '',
+              sidePic: sidePicKey ? row[sidePicKey] : '',
               title: titleKey ? row[titleKey] : '',
               price: priceKey ? String(row[priceKey] || '0') : '0',
+              description: descriptionKey ? row[descriptionKey] : '',
               status: 'pending',
               message: 'Waiting...'
             };
@@ -161,6 +167,9 @@ export default function DataUploadPage() {
             
             const price = parseFloat(String(productData.price).replace(/[^0-9.-]+/g,""));
             if (isNaN(price)) throw new Error("Invalid price format.");
+            
+            const description = productData.description.trim();
+            if (!description) throw new Error("Description is empty.");
 
             // Upload images
             updateProductStatus(i, 'processing', 'Uploading images...');
@@ -187,6 +196,9 @@ export default function DataUploadPage() {
             const hoverImage = await uploadImage(productData.hoverPic, 'Hover View', 'hover view');
             if (hoverImage) uploadedImages.push(hoverImage);
 
+            const sideImage = await uploadImage(productData.sidePic, 'Side View', 'side view');
+            if (sideImage) uploadedImages.push(sideImage);
+
             // Save product to Firestore
             updateProductStatus(i, 'processing', 'Saving to database...');
             const newProductRef = doc(productsRef);
@@ -195,9 +207,9 @@ export default function DataUploadPage() {
                 slug: slugify(productData.title),
                 price,
                 costPrice: price * (1 - 0.35),
-                description: '',
+                description,
                 brandIds: [brandId],
-                images: uploadedImages.map((img, idx) => ({ ...img, id: `${newProductRef.id}_${idx}` })),
+                images: uploadedImages.map((img, idx) => ({ ...img, id: `${newProductRef.id}_${idx}`, isPrimary: idx === 0 })),
                 materials: [], certifications: [], sustainabilityImpact: '', categoryIds: [], sizeIds: [],
                 colourIds: [], materialTypeIds: [], finishTypeIds: [], adhesiveIds: [], handleIds: [],
                 shapeIds: [], lidIds: [], showInWeddingTales: false, showInDesignersOnDiscount: false,
@@ -236,7 +248,7 @@ export default function DataUploadPage() {
       <Card>
         <CardHeader>
           <CardTitle>Upload Product Data</CardTitle>
-          <CardDescription>Upload an XLSX file. Columns can be: <code className="bg-muted px-1 rounded-sm">brand</code>, <code className="bg-muted px-1 rounded-sm">Front-pic</code>, <code className="bg-muted px-1 rounded-sm">Hover-pic</code>, <code className="bg-muted px-1 rounded-sm">product_title</code>, <code className="bg-muted px-1 rounded-sm">price</code>. The first row is used for headers.</CardDescription>
+          <CardDescription>Upload an XLSX file. Columns can be: <code className="bg-muted px-1 rounded-sm">brand</code>, <code className="bg-muted px-1 rounded-sm">Front-pic</code>, <code className="bg-muted px-1 rounded-sm">Hover-pic</code>, <code className="bg-muted px-1 rounded-sm">side_pic</code>, <code className="bg-muted px-1 rounded-sm">product_title</code>, <code className="bg-muted px-1 rounded-sm">price</code>, <code className="bg-muted px-1 rounded-sm">description</code>. The first row is used for headers.</CardDescription>
         </CardHeader>
         <CardContent className="flex items-center gap-4">
           <Input type="file" accept=".xlsx, .xls" onChange={handleFile} disabled={isProcessing} className="max-w-xs"/>
